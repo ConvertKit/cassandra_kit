@@ -1,2 +1,2 @@
 # cassandra_kit
-Cequel but better
+Cequel but much better
