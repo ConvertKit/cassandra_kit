@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-module Cequel
+module CassandraKit
 
   module SpecSupport
 

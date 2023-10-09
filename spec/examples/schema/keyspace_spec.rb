@@ -1,9 +1,9 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path('../../spec_helper', __FILE__)
 
-describe Cequel::Schema::Keyspace do
+describe CassandraKit::Schema::Keyspace do
   let(:connection) do
-    Cequel.connect(config)
+    CassandraKit.connect(config)
   end
   let(:keyspace) { connection.schema }
 
@@ -16,14 +16,14 @@ describe Cequel::Schema::Keyspace do
     let(:keyspace_name) do
       test_env_number = ENV['TEST_ENV_NUMBER']
       test_env_number ?
-        "cequel_schema_test_#{test_env_number}" :
-        "cequel_schema_test"
+        "cassandra_kit_schema_test_#{test_env_number}" :
+        "cassandra_kit_schema_test"
     end
 
     let(:basic_config) do
       {
-        host: Cequel::SpecSupport::Helpers.host,
-        port: Cequel::SpecSupport::Helpers.port,
+        host: CassandraKit::SpecSupport::Helpers.host,
+        port: CassandraKit::SpecSupport::Helpers.port,
         keyspace: keyspace_name
       }
     end

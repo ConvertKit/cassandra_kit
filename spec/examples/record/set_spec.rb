@@ -1,25 +1,25 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path('../spec_helper', __FILE__)
 
-describe Cequel::Record::Set do
+describe CassandraKit::Record::Set do
   model :Post do
     key :permalink, :text
     column :title, :text
     set :tags, :text
   end
 
-  let(:scope) { cequel[Post.table_name].where(:permalink => 'cequel') }
+  let(:scope) { cassandra_kit[Post.table_name].where(:permalink => 'cassandra_kit') }
   subject { scope.first }
 
   let! :post do
     Post.new do |post|
-      post.permalink = 'cequel'
+      post.permalink = 'cassandra_kit'
       post.tags = Set['one', 'two']
     end.tap(&:save)
   end
 
   let! :unloaded_post do
-    Post['cequel']
+    Post['cassandra_kit']
   end
 
   context 'new record' do

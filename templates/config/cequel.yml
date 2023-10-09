@@ -1,4 +1,4 @@
-<% app_name = Cequel::Record::Railtie.app_name -%>
+<% app_name = CassandraKit::Record::Railtie.app_name -%>
 development:
   host: '127.0.0.1'
   port: 9042

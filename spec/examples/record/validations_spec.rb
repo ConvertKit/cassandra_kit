@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 require_relative 'spec_helper'
 
-describe Cequel::Record::Validations do
+describe CassandraKit::Record::Validations do
   model :Post do
     key :permalink, :text
     column :title, :text
@@ -66,7 +66,7 @@ describe Cequel::Record::Validations do
   describe '#save!' do
     it 'should raise error and not persist model if invalid' do
       expect { invalid_post.save!  }.
-        to raise_error(Cequel::Record::RecordInvalid)
+        to raise_error(CassandraKit::Record::RecordInvalid)
     end
 
     it 'should persist model and return self if valid' do
@@ -78,7 +78,7 @@ describe Cequel::Record::Validations do
   describe '#update_attributes!' do
     it 'should raise error and not update data in the database' do
       expect { invalid_post.update_attributes!(:body => 'My Post') }.
-        to raise_error(Cequel::Record::RecordInvalid)
+        to raise_error(CassandraKit::Record::RecordInvalid)
     end
 
     it 'should return successfully and update data in the database if valid' do
@@ -90,19 +90,19 @@ describe Cequel::Record::Validations do
   describe '::create!' do
     it 'should raise RecordInvalid and not persist model if invalid' do
       expect do
-        Post.create!(:permalink => 'cequel', :body => 'Cequel')
-      end.to raise_error(Cequel::Record::RecordInvalid)
+        Post.create!(:permalink => 'cassandra_kit', :body => 'CassandraKit')
+      end.to raise_error(CassandraKit::Record::RecordInvalid)
     end
 
     it 'should persist record to database if valid' do
-      Post.create!(:permalink => 'cequel', :title => 'Cequel')
-      expect(Post.find('cequel').title).to eq('Cequel')
+      Post.create!(:permalink => 'cassandra_kit', :title => 'CassandraKit')
+      expect(Post.find('cassandra_kit').title).to eq('CassandraKit')
     end
   end
 
   describe 'callbacks' do
     it 'should call validation callbacks' do
-      post = Post.new(:title => 'cequel')
+      post = Post.new(:title => 'cassandra_kit')
       post.valid?
       expect(post.called_validate_callback).to eq(true)
     end

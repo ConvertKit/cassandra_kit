@@ -1,5 +1,5 @@
 en:
-  cequel:
+  cassandra_kit:
     models:
       post: Blog post
     attributes:

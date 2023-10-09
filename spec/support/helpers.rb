@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
-module Cequel
+module CassandraKit
   module SpecSupport
     module Macros
       def model(class_name, options = {}, &block)
@@ -15,7 +15,7 @@ module Cequel
             metadata = self.class.metadata
             metadata[:models].each do |name, (options, block)|
               clazz = Class.new do
-                include Cequel::Record
+                include CassandraKit::Record
                 self.table_name = name.to_s.tableize + "_" + SecureRandom.hex(4)
                 class_eval(&block)
               end
@@ -37,7 +37,7 @@ module Cequel
 
           after :all do
             self.class.metadata[:models].each_key do |name|
-              cequel.schema.drop_table(Object.const_get(name).table_name)
+              cassandra_kit.schema.drop_table(Object.const_get(name).table_name)
               Object.module_eval { remove_const(name) }
             end
           end
@@ -45,53 +45,53 @@ module Cequel
       end
 
       def uuid(name)
-        let(name) { Cequel.uuid }
+        let(name) { CassandraKit.uuid }
       end
     end
 
     module Helpers
 
       def self.cql_version
-        Cequel.connect(host: host,
+        CassandraKit.connect(host: host,
                        port: port,
                        keyspace: "system")
           .execute("SELECT cql_version FROM system.local")
           .first["cql_version"]
       end
 
-      def self.cequel
-        @cequel ||= Cequel.connect(
+      def self.cassandra_kit
+        @cassandra_kit ||= CassandraKit.connect(
           host: host,
           port: port,
           keyspace: keyspace_name
-        ).tap do |cequel|
-          if ENV['CEQUEL_LOG_QUERIES']
-            cequel.logger = Logger.new(STDOUT)
+        ).tap do |cassandra_kit|
+          if ENV['CASSANDRA_KIT_LOG_QUERIES']
+            cassandra_kit.logger = Logger.new(STDOUT)
           else
-            cequel.logger = Logger.new(File.open('/dev/null', 'a'))
+            cassandra_kit.logger = Logger.new(File.open('/dev/null', 'a'))
           end
         end
       end
 
       def self.host
-        ENV['CEQUEL_TEST_HOST'] || '127.0.0.1'
+        ENV['CASSANDRA_KIT_TEST_HOST'] || '127.0.0.1'
       end
 
       def self.port
-        ENV['CEQUEL_TEST_PORT'] || '9042'
+        ENV['CASSANDRA_KIT_TEST_PORT'] || '9042'
       end
 
       def self.legacy_host
-        ENV['CEQUEL_TEST_LEGACY_HOST'] || '127.0.0.1:9160'
+        ENV['CASSANDRA_KIT_TEST_LEGACY_HOST'] || '127.0.0.1:9160'
       end
 
       def self.keyspace_name
-        ENV.fetch('CEQUEL_TEST_KEYSPACE') do
+        ENV.fetch('CASSANDRA_KIT_TEST_KEYSPACE') do
           test_env_number = ENV['TEST_ENV_NUMBER']
           if test_env_number.present?
-            "cequel_test_#{test_env_number}"
+            "cassandra_kit_test_#{test_env_number}"
           else
-            'cequel_test'
+            'cassandra_kit_test'
           end
         end
       end
@@ -114,8 +114,8 @@ module Cequel
           at(time, 999)
       end
 
-      def cequel
-        Helpers.cequel
+      def cassandra_kit
+        Helpers.cassandra_kit
       end
 
       def legacy_connection
@@ -123,35 +123,35 @@ module Cequel
       end
 
       def expect_statement_count(number)
-        allow(cequel.client).to receive(:execute).and_call_original
+        allow(cassandra_kit.client).to receive(:execute).and_call_original
         yield
-        expect(cequel.client).to have_received(:execute).exactly(number).times
+        expect(cassandra_kit.client).to have_received(:execute).exactly(number).times
       end
 
       def disallow_queries!
-        expect(cequel.client).to_not receive(:execute)
+        expect(cassandra_kit.client).to_not receive(:execute)
       end
 
       def with_client_error(error)
-        allow(cequel.client).to receive(:execute).once.and_raise(error)
+        allow(cassandra_kit.client).to receive(:execute).once.and_raise(error)
         begin
           yield
         ensure
-          allow(cequel.client).to receive(:execute).and_call_original
+          allow(cassandra_kit.client).to receive(:execute).and_call_original
         end
       end
 
       def expect_query_with_consistency(matcher, consistency)
-        allow(cequel.client).to receive(:execute).and_call_original
+        allow(cassandra_kit.client).to receive(:execute).and_call_original
         yield
-        expect(cequel.client).to have_received(:execute).
+        expect(cassandra_kit.client).to have_received(:execute).
           with(matcher, hash_including(:consistency => consistency))
       end
 
       def expect_query_with_options(matcher, options)
-        allow(cequel.client).to receive(:execute).and_call_original
+        allow(cassandra_kit.client).to receive(:execute).and_call_original
         yield
-        expect(cequel.client).to have_received(:execute).
+        expect(cassandra_kit.client).to have_received(:execute).
           with(matcher, hash_including(options))
       end
 

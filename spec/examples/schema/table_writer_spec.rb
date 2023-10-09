@@ -1,20 +1,20 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path('../../spec_helper', __FILE__)
 
-describe Cequel::Schema::TableWriter do
+describe CassandraKit::Schema::TableWriter do
   let(:table_name) { :"posts_#{SecureRandom.hex(4)}" }
 
-  let(:table) { cequel.schema.read_table(table_name) }
+  let(:table) { cassandra_kit.schema.read_table(table_name) }
 
   describe '#create_table' do
 
     after do
-      cequel.schema.drop_table(table_name)
+      cassandra_kit.schema.drop_table(table_name)
     end
 
     describe 'with simple skinny table' do
       before do
-        cequel.schema.create_table(table_name) do
+        cassandra_kit.schema.create_table(table_name) do
           key :permalink, :ascii
           column :title, :text
         end
@@ -25,18 +25,18 @@ describe Cequel::Schema::TableWriter do
       end
 
       it 'should set key validator' do
-        expect(table.partition_key_columns.map(&:type)).to eq([Cequel::Type[:ascii]])
+        expect(table.partition_key_columns.map(&:type)).to eq([CassandraKit::Type[:ascii]])
       end
 
       it 'should set non-key columns' do
         expect(table.columns.find { |column| column.name == :title }.type).
-          to eq(Cequel::Type[:text])
+          to eq(CassandraKit::Type[:text])
       end
     end
 
     describe 'with multi-column primary key' do
       before do
-        cequel.schema.create_table(table_name) do
+        cassandra_kit.schema.create_table(table_name) do
           key :blog_subdomain, :ascii
           key :permalink, :ascii
           column :title, :text
@@ -48,7 +48,7 @@ describe Cequel::Schema::TableWriter do
       end
 
       it 'should set key validator' do
-        expect(table.partition_key_columns.map(&:type)).to eq([Cequel::Type[:ascii]])
+        expect(table.partition_key_columns.map(&:type)).to eq([CassandraKit::Type[:ascii]])
       end
 
       it 'should create non-partition key components' do
@@ -56,13 +56,13 @@ describe Cequel::Schema::TableWriter do
       end
 
       it 'should set type for non-partition key components' do
-        expect(table.clustering_columns.map(&:type)).to eq([Cequel::Type[:ascii]])
+        expect(table.clustering_columns.map(&:type)).to eq([CassandraKit::Type[:ascii]])
       end
     end
 
     describe 'with composite partition key' do
       before do
-        cequel.schema.create_table(table_name) do
+        cassandra_kit.schema.create_table(table_name) do
           partition_key :blog_subdomain, :ascii
           partition_key :permalink, :ascii
           column :title, :text
@@ -75,13 +75,13 @@ describe Cequel::Schema::TableWriter do
 
       it 'should set key validators' do
         expect(table.partition_key_columns.map(&:type)).
-          to eq([Cequel::Type[:ascii], Cequel::Type[:ascii]])
+          to eq([CassandraKit::Type[:ascii], CassandraKit::Type[:ascii]])
       end
     end
 
     describe 'with composite partition key and non-partition keys' do
       before do
-        cequel.schema.create_table(table_name) do
+        cassandra_kit.schema.create_table(table_name) do
           partition_key :blog_subdomain, :ascii
           partition_key :permalink, :ascii
           key :month, :timestamp
@@ -96,7 +96,7 @@ describe Cequel::Schema::TableWriter do
 
       it 'should set key validators' do
         expect(table.partition_key_columns.map(&:type)).
-          to eq([Cequel::Type[:ascii], Cequel::Type[:ascii]])
+          to eq([CassandraKit::Type[:ascii], CassandraKit::Type[:ascii]])
       end
 
       it 'should create non-partition key components' do
@@ -104,13 +104,13 @@ describe Cequel::Schema::TableWriter do
       end
 
       it 'should set type for non-partition key components' do
-        expect(table.clustering_columns.map(&:type)).to eq([Cequel::Type[:timestamp]])
+        expect(table.clustering_columns.map(&:type)).to eq([CassandraKit::Type[:timestamp]])
       end
     end
 
     describe 'collection types' do
       before do
-        cequel.schema.create_table(table_name) do
+        cassandra_kit.schema.create_table(table_name) do
           key :permalink, :ascii
           column :title, :text
           list :authors, :blob
@@ -120,39 +120,39 @@ describe Cequel::Schema::TableWriter do
       end
 
       it 'should create list' do
-        expect(table.data_column(:authors)).to be_a(Cequel::Schema::List)
+        expect(table.data_column(:authors)).to be_a(CassandraKit::Schema::List)
       end
 
       it 'should set correct type for list' do
-        expect(table.data_column(:authors).type).to eq(Cequel::Type[:blob])
+        expect(table.data_column(:authors).type).to eq(CassandraKit::Type[:blob])
       end
 
       it 'should create set' do
-        expect(table.data_column(:tags)).to be_a(Cequel::Schema::Set)
+        expect(table.data_column(:tags)).to be_a(CassandraKit::Schema::Set)
       end
 
       it 'should set correct type for set' do
-        expect(table.data_column(:tags).type).to eq(Cequel::Type[:text])
+        expect(table.data_column(:tags).type).to eq(CassandraKit::Type[:text])
       end
 
       it 'should create map' do
-        expect(table.data_column(:trackbacks)).to be_a(Cequel::Schema::Map)
+        expect(table.data_column(:trackbacks)).to be_a(CassandraKit::Schema::Map)
       end
 
       it 'should set correct key type' do
         expect(table.data_column(:trackbacks).key_type).
-          to eq(Cequel::Type[:timestamp])
+          to eq(CassandraKit::Type[:timestamp])
       end
 
       it 'should set correct value type' do
         expect(table.data_column(:trackbacks).value_type).
-          to eq(Cequel::Type[:ascii])
+          to eq(CassandraKit::Type[:ascii])
       end
     end
 
     describe 'storage properties' do
       before do
-        cequel.schema.create_table(table_name) do
+        cassandra_kit.schema.create_table(table_name) do
           key :permalink, :ascii
           column :title, :text
           with :comment, 'Blog posts'
@@ -175,7 +175,7 @@ describe Cequel::Schema::TableWriter do
 
     describe 'compact storage' do
       before do
-        cequel.schema.create_table(table_name) do
+        cassandra_kit.schema.create_table(table_name) do
           key :permalink, :ascii
           column :title, :text
           compact_storage
@@ -189,7 +189,7 @@ describe Cequel::Schema::TableWriter do
 
     describe 'clustering order' do
       before do
-        cequel.schema.create_table(table_name) do
+        cassandra_kit.schema.create_table(table_name) do
           key :blog_permalink, :ascii
           key :id, :uuid, :desc
           column :title, :text
@@ -203,7 +203,7 @@ describe Cequel::Schema::TableWriter do
 
     describe 'indices' do
       it 'should create indices' do
-        cequel.schema.create_table(table_name) do
+        cassandra_kit.schema.create_table(table_name) do
           key :blog_permalink, :ascii
           key :id, :uuid, :desc
           column :title, :text, :index => true
@@ -212,7 +212,7 @@ describe Cequel::Schema::TableWriter do
       end
 
       it 'should create indices with specified name' do
-        cequel.schema.create_table(table_name) do
+        cassandra_kit.schema.create_table(table_name) do
           key :blog_permalink, :ascii
           key :id, :uuid, :desc
           column :title, :text, :index => :silly_idx
