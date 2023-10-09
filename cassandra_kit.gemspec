@@ -1,4 +1,4 @@
-require File.expand_path('../lib/cequel/version', __FILE__)
+require File.expand_path('../lib/cassandra_kit/version', __FILE__)
 
 Gem::Specification.new do |s|
   s.name = 'cassandra_kit'
