@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path('../spec_helper', __FILE__)
 
-describe Cequel::Record::RecordSet do
+describe CassandraKit::Record::RecordSet do
   model :Blog do
     key :subdomain, :ascii
     column :name, :text
@@ -39,7 +39,7 @@ describe Cequel::Record::RecordSet do
   end
 
   let(:subdomains) { blogs.map(&:subdomain) }
-  let(:uuids) { Array.new(2) { Cequel.uuid }}
+  let(:uuids) { Array.new(2) { CassandraKit.uuid }}
   let(:now) { Time.at(Time.now.to_i) }
 
   let(:blogs) do
@@ -56,9 +56,9 @@ describe Cequel::Record::RecordSet do
     5.times.map do |i|
       Post.new(
         blog_subdomain: 'cassandra',
-        permalink: "cequel#{i}",
-        title: "Cequel #{i}",
-        subtitle: 'New Cequel Post',
+        permalink: "cassandra_kit#{i}",
+        title: "CassandraKit #{i}",
+        subtitle: 'New CassandraKit Post',
         body: "Post number #{i}",
         author_id: uuids[i%2]
       )
@@ -70,7 +70,7 @@ describe Cequel::Record::RecordSet do
       PublishedPost.new(
         :blog_subdomain => 'cassandra',
         :published_at => max_uuid(now + (i - 4).minutes),
-        :permalink => "cequel#{i}"
+        :permalink => "cassandra_kit#{i}"
       )
     end
   end
@@ -99,8 +99,8 @@ describe Cequel::Record::RecordSet do
     5.times.map do |i|
       Post.new(
         :blog_subdomain => 'orms',
-        :permalink => "cequel#{i}",
-        :title => "Cequel ORM #{i}"
+        :permalink => "cassandra_kit#{i}",
+        :title => "CassandraKit ORM #{i}"
       )
     end
   end
@@ -111,8 +111,8 @@ describe Cequel::Record::RecordSet do
     5.times.map do |i|
       Comment.new(
         :blog_subdomain => 'cassandra',
-        :permalink => 'cequel0',
-        :id => Cequel.uuid(Time.now - 5 + i),
+        :permalink => 'cassandra_kit0',
+        :id => CassandraKit.uuid(Time.now - 5 + i),
         :body => "Comment #{i}"
       )
     end
@@ -120,7 +120,7 @@ describe Cequel::Record::RecordSet do
 
   let(:records) { posts }
 
-  before { cequel.batch { records.flatten.each { |record| record.save! }}}
+  before { cassandra_kit.batch { records.flatten.each { |record| record.save! }}}
 
   describe '::find' do
     context 'simple primary key' do
@@ -151,17 +151,17 @@ describe Cequel::Record::RecordSet do
 
       it 'should raise RecordNotFound if bad argument passed' do
         expect { Blog.find('bogus') }.
-          to raise_error(Cequel::Record::RecordNotFound)
+          to raise_error(CassandraKit::Record::RecordNotFound)
       end
     end
 
     context 'compound primary key' do
       let(:records) { cassandra_posts }
-      subject { Post['cassandra'].find('cequel0') }
+      subject { Post['cassandra'].find('cassandra_kit0') }
 
       its(:blog_subdomain) { should == 'cassandra' }
-      its(:permalink) { should == 'cequel0' }
-      its(:title) { should == 'Cequel 0' }
+      its(:permalink) { should == 'cassandra_kit0' }
+      its(:title) { should == 'CassandraKit 0' }
 
       it { is_expected.to be_persisted }
       it { is_expected.not_to be_transient }
@@ -170,20 +170,20 @@ describe Cequel::Record::RecordSet do
 
       it 'should cast all keys to correct type' do
         expect(Post['cassandra'.force_encoding('ASCII-8BIT')].
-          find('cequel0'.force_encoding('ASCII-8BIT'))).to be
+          find('cassandra_kit0'.force_encoding('ASCII-8BIT'))).to be
       end
 
       it 'should raise RecordNotFound if bad argument passed' do
-        expect { Post['cequel'].find('bogus')}.
-          to raise_error(Cequel::Record::RecordNotFound)
+        expect { Post['cassandra_kit'].find('bogus')}.
+          to raise_error(CassandraKit::Record::RecordNotFound)
       end
 
       it 'should take vararg of values for single key' do
-        expect(Post.find('cassandra', 'cequel0')).to eq(posts.first)
+        expect(Post.find('cassandra', 'cassandra_kit0')).to eq(posts.first)
       end
 
       it 'should take multiple values for key' do
-        expect(Post.find('cassandra', ['cequel0', 'cequel1'])).to eq(posts.first(2))
+        expect(Post.find('cassandra', ['cassandra_kit0', 'cassandra_kit1'])).to eq(posts.first(2))
       end
 
       it 'should use Enumerable#find if block given' do
@@ -224,12 +224,12 @@ describe Cequel::Record::RecordSet do
 
     context 'fully specified compound primary key' do
       let(:records) { posts }
-      subject { Post['cassandra']['cequel0'] }
+      subject { Post['cassandra']['cassandra_kit0'] }
 
       it 'should not query the database' do
-        expect(cequel).not_to receive(:execute)
+        expect(cassandra_kit).not_to receive(:execute)
         expect(subject.blog_subdomain).to eq('cassandra')
-        expect(subject.permalink).to eq('cequel0')
+        expect(subject.permalink).to eq('cassandra_kit0')
       end
 
       it 'should cast all keys to the correct type' do
@@ -238,12 +238,12 @@ describe Cequel::Record::RecordSet do
       end
 
       it 'should lazily query the database when attribute accessed' do
-        expect(subject.title).to eq('Cequel 0')
+        expect(subject.title).to eq('CassandraKit 0')
       end
 
       it 'should get all eager-loadable attributes on first lazy load' do
         subject.title
-        expect(cequel).not_to receive(:execute)
+        expect(cassandra_kit).not_to receive(:execute)
         expect(subject.body).to eq('Post number 0')
       end
     end
@@ -252,7 +252,7 @@ describe Cequel::Record::RecordSet do
       let(:records) { posts }
       it 'should create partial collection if not all keys specified' do
         expect(Post['cassandra'].find_each(:batch_size => 2).map(&:title)).
-          to eq((0...5).map { |i| "Cequel #{i}" })
+          to eq((0...5).map { |i| "CassandraKit #{i}" })
       end
     end
   end
@@ -289,48 +289,48 @@ describe Cequel::Record::RecordSet do
 
       it 'should return scope to keys' do
         expect(subject.map { |post| post.title }).to match_array((0...5).
-          map { |i| ["Cequel #{i}", "Sequel #{i}"] }.flatten)
+          map { |i| ["CassandraKit #{i}", "Sequel #{i}"] }.flatten)
       end
     end
 
     context 'fully specified compound primary key with multiple partition keys' do
       let(:records) { [posts, orm_posts] }
 
-      subject { Post.values_at('cassandra', 'orms')['cequel0'] }
+      subject { Post.values_at('cassandra', 'orms')['cassandra_kit0'] }
 
       it 'should return collection of unloaded models' do
         disallow_queries!
         expect(subject.map(&:key_values)).
-          to eq([['cassandra', 'cequel0'], ['orms', 'cequel0']])
+          to eq([['cassandra', 'cassandra_kit0'], ['orms', 'cassandra_kit0']])
       end
 
       it 'should lazy-load all records when properties of one accessed' do
         expect_statement_count 1 do
-          expect(subject.first.title).to eq('Cequel 0')
-          expect(subject.second.title).to eq('Cequel ORM 0')
+          expect(subject.first.title).to eq('CassandraKit 0')
+          expect(subject.second.title).to eq('CassandraKit ORM 0')
         end
       end
     end
 
     context 'fully specified compound primary key with multiple clustering columns' do
       let(:records) { posts }
-      subject { Post['cassandra'].values_at('cequel0', 'cequel1') }
+      subject { Post['cassandra'].values_at('cassandra_kit0', 'cassandra_kit1') }
 
       it 'should combine partition key with each clustering column' do
         disallow_queries!
         expect(subject.map(&:key_values)).
-          to eq([['cassandra', 'cequel0'], ['cassandra', 'cequel1']])
+          to eq([['cassandra', 'cassandra_kit0'], ['cassandra', 'cassandra_kit1']])
       end
 
       it 'should lazily load all records when one record accessed' do
         expect_statement_count 1 do
-          expect(subject.first.title).to eq('Cequel 0')
-          expect(subject.second.title).to eq('Cequel 1')
+          expect(subject.first.title).to eq('CassandraKit 0')
+          expect(subject.second.title).to eq('CassandraKit 1')
         end
       end
 
       it 'should not allow collection columns to be selected' do
-        expect { Post.select(:tags)['cassandra'].values_at('cequel0', 'cequel1') }.
+        expect { Post.select(:tags)['cassandra'].values_at('cassandra_kit0', 'cassandra_kit1') }.
           to raise_error(ArgumentError)
       end
     end
@@ -340,8 +340,8 @@ describe Cequel::Record::RecordSet do
 
       it 'should raise IllegalQuery' do
         disallow_queries!
-        expect { Comment['cassandra'].values_at('cequel0') }.
-          to raise_error(Cequel::Record::IllegalQuery)
+        expect { Comment['cassandra'].values_at('cassandra_kit0') }.
+          to raise_error(CassandraKit::Record::IllegalQuery)
       end
     end
   end
@@ -366,7 +366,7 @@ describe Cequel::Record::RecordSet do
 
     it 'should iterate over all keys' do
       expect(Post.find_each(:batch_size => 2).map(&:title)).to match_array(
-        (0...5).flat_map { |i| ["Cequel #{i}", "Sequel #{i}", "Mongoid #{i}"] }
+        (0...5).flat_map { |i| ["CassandraKit #{i}", "Sequel #{i}", "Mongoid #{i}"] }
       )
     end
 
@@ -445,20 +445,20 @@ describe Cequel::Record::RecordSet do
   describe '#[]' do
     it 'should return partial collection' do
       expect(Post['cassandra'].find_each(:batch_size => 2).map(&:title)).
-        to eq((0...5).map { |i| "Cequel #{i}" })
+        to eq((0...5).map { |i| "CassandraKit #{i}" })
     end
 
     it 'should cast arguments correctly' do
       expect(Post['cassandra'.force_encoding('ASCII-8BIT')].
         find_each(:batch_size => 2).map(&:title)).
-        to eq((0...5).map { |i| "Cequel #{i}" })
+        to eq((0...5).map { |i| "CassandraKit #{i}" })
     end
   end
 
   describe '#/' do
     it 'should behave like #[]' do
       expect((Post / 'cassandra').find_each(:batch_size => 2).map(&:title)).
-        to eq((0...5).map { |i| "Cequel #{i}" })
+        to eq((0...5).map { |i| "CassandraKit #{i}" })
     end
   end
 
@@ -467,23 +467,23 @@ describe Cequel::Record::RecordSet do
     let(:published_at_uuid) { published_posts[2].published_at }
 
     it 'should return collection after given key' do
-      expect(Post['cassandra'].after('cequel1').map(&:title)).
-        to eq((2...5).map { |i| "Cequel #{i}" })
+      expect(Post['cassandra'].after('cassandra_kit1').map(&:title)).
+        to eq((2...5).map { |i| "CassandraKit #{i}" })
     end
 
     it 'should cast argument' do
-      expect(Post['cassandra'].after('cequel1'.force_encoding('ASCII-8BIT')).
-        map(&:title)).to eq((2...5).map { |i| "Cequel #{i}" })
+      expect(Post['cassandra'].after('cassandra_kit1'.force_encoding('ASCII-8BIT')).
+        map(&:title)).to eq((2...5).map { |i| "CassandraKit #{i}" })
     end
 
     it 'should query Time range for Timeuuid key with Timeuuid argument' do
       expect(PublishedPost['cassandra'].after(published_at_uuid).map(&:permalink)).
-        to eq(%w(cequel4 cequel3))
+        to eq(%w(cassandra_kit4 cassandra_kit3))
     end
 
     it 'should query Time range for Timeuuid key' do
       expect(PublishedPost['cassandra'].after(now - 3.minutes).map(&:permalink)).
-        to eq(%w(cequel4 cequel3 cequel2))
+        to eq(%w(cassandra_kit4 cassandra_kit3 cassandra_kit2))
     end
   end
 
@@ -491,23 +491,23 @@ describe Cequel::Record::RecordSet do
     let(:records) { [posts, published_posts] }
 
     it 'should return collection starting with given key' do
-      expect(Post['cassandra'].from('cequel1').map(&:title)).
-        to eq((1...5).map { |i| "Cequel #{i}" })
+      expect(Post['cassandra'].from('cassandra_kit1').map(&:title)).
+        to eq((1...5).map { |i| "CassandraKit #{i}" })
     end
 
     it 'should cast argument' do
-      expect(Post['cassandra'].from('cequel1'.force_encoding('ASCII-8BIT')).
-        map(&:title)).to eq((1...5).map { |i| "Cequel #{i}" })
+      expect(Post['cassandra'].from('cassandra_kit1'.force_encoding('ASCII-8BIT')).
+        map(&:title)).to eq((1...5).map { |i| "CassandraKit #{i}" })
     end
 
     it 'should query Time range for Timeuuid key' do
       expect(PublishedPost['cassandra'].from(now - 3.minutes).map(&:permalink)).
-        to eq(%w(cequel4 cequel3 cequel2 cequel1))
+        to eq(%w(cassandra_kit4 cassandra_kit3 cassandra_kit2 cassandra_kit1))
     end
 
     it 'should raise ArgumentError when called on partition key' do
       expect { Post.from('cassandra') }.
-        to raise_error(Cequel::Record::IllegalQuery)
+        to raise_error(CassandraKit::Record::IllegalQuery)
     end
   end
 
@@ -516,23 +516,23 @@ describe Cequel::Record::RecordSet do
     let(:published_at_uuid) { published_posts[3].published_at }
 
     it 'should return collection before given key' do
-      expect(Post['cassandra'].before('cequel3').map(&:title)).
-        to eq((0...3).map { |i| "Cequel #{i}" })
+      expect(Post['cassandra'].before('cassandra_kit3').map(&:title)).
+        to eq((0...3).map { |i| "CassandraKit #{i}" })
     end
 
     it 'should query Time range for Timeuuid key' do
       expect(PublishedPost['cassandra'].before(now - 1.minute).map(&:permalink)).
-        to eq(%w(cequel2 cequel1 cequel0))
+        to eq(%w(cassandra_kit2 cassandra_kit1 cassandra_kit0))
     end
 
     it 'should query Time range for Timeuuid key with Timeuuid argument' do
       expect(PublishedPost['cassandra'].before(published_at_uuid).map(&:permalink)).
-        to eq(%w(cequel2 cequel1 cequel0))
+        to eq(%w(cassandra_kit2 cassandra_kit1 cassandra_kit0))
     end
 
     it 'should cast argument' do
-      expect(Post['cassandra'].before('cequel3'.force_encoding('ASCII-8BIT')).
-        map(&:title)).to eq((0...3).map { |i| "Cequel #{i}" })
+      expect(Post['cassandra'].before('cassandra_kit3'.force_encoding('ASCII-8BIT')).
+        map(&:title)).to eq((0...3).map { |i| "CassandraKit #{i}" })
     end
   end
 
@@ -540,18 +540,18 @@ describe Cequel::Record::RecordSet do
     let(:records) { [posts, published_posts] }
 
     it 'should return collection up to given key' do
-      expect(Post['cassandra'].upto('cequel3').map(&:title)).
-        to eq((0..3).map { |i| "Cequel #{i}" })
+      expect(Post['cassandra'].upto('cassandra_kit3').map(&:title)).
+        to eq((0..3).map { |i| "CassandraKit #{i}" })
     end
 
     it 'should cast argument' do
-      expect(Post['cassandra'].upto('cequel3'.force_encoding('ASCII-8BIT')).
-        map(&:title)).to eq((0..3).map { |i| "Cequel #{i}" })
+      expect(Post['cassandra'].upto('cassandra_kit3'.force_encoding('ASCII-8BIT')).
+        map(&:title)).to eq((0..3).map { |i| "CassandraKit #{i}" })
     end
 
     it 'should query Time range for Timeuuid key' do
       expect(PublishedPost['cassandra'].upto(now - 1.minute).map(&:permalink)).
-        to eq(%w(cequel3 cequel2 cequel1 cequel0))
+        to eq(%w(cassandra_kit3 cassandra_kit2 cassandra_kit1 cassandra_kit0))
     end
   end
 
@@ -559,29 +559,29 @@ describe Cequel::Record::RecordSet do
     let(:records) { [posts, published_posts] }
 
     it 'should return collection with inclusive upper bound' do
-      expect(Post['cassandra'].in('cequel1'..'cequel3').map(&:title)).
-        to eq((1..3).map { |i| "Cequel #{i}" })
+      expect(Post['cassandra'].in('cassandra_kit1'..'cassandra_kit3').map(&:title)).
+        to eq((1..3).map { |i| "CassandraKit #{i}" })
     end
 
     it 'should cast arguments' do
-      expect(Post['cassandra'].in('cequel1'.force_encoding('ASCII-8BIT')..
-                              'cequel3'.force_encoding('ASCII-8BIT')).
-        map(&:title)).to eq((1..3).map { |i| "Cequel #{i}" })
+      expect(Post['cassandra'].in('cassandra_kit1'.force_encoding('ASCII-8BIT')..
+                              'cassandra_kit3'.force_encoding('ASCII-8BIT')).
+        map(&:title)).to eq((1..3).map { |i| "CassandraKit #{i}" })
     end
 
     it 'should return collection with exclusive upper bound' do
-      expect(Post['cassandra'].in('cequel1'...'cequel3').map(&:title)).
-        to eq((1...3).map { |i| "Cequel #{i}" })
+      expect(Post['cassandra'].in('cassandra_kit1'...'cassandra_kit3').map(&:title)).
+        to eq((1...3).map { |i| "CassandraKit #{i}" })
     end
 
     it 'should query Time range for Timeuuid key' do
       expect(PublishedPost['cassandra'].in((now - 3.minutes)..(now - 1.minute)).
-        map(&:permalink)).to eq(%w(cequel3 cequel2 cequel1))
+        map(&:permalink)).to eq(%w(cassandra_kit3 cassandra_kit2 cassandra_kit1))
     end
 
     it 'should query Time range for Timeuuid key with exclusive upper bound' do
       expect(PublishedPost['cassandra'].in((now - 3.minutes)...(now - 1.minute)).
-        map(&:permalink)).to eq(%w(cequel2 cequel1))
+        map(&:permalink)).to eq(%w(cassandra_kit2 cassandra_kit1))
     end
   end
 
@@ -595,32 +595,32 @@ describe Cequel::Record::RecordSet do
 
     it 'should return collection in reverse' do
       expect(PublishedPost['cassandra'].reverse.map(&:permalink)).
-        to eq((0...5).map { |i| "cequel#{i}" })
+        to eq((0...5).map { |i| "cassandra_kit#{i}" })
     end
 
     it 'should batch iterate over collection in reverse' do
       expect(PublishedPost['cassandra'].reverse.find_each(:batch_size => 2).map(&:permalink)).
-        to eq((0...5).map { |i| "cequel#{i}" })
+        to eq((0...5).map { |i| "cassandra_kit#{i}" })
     end
 
     it 'should raise an error if range key is a partition key' do
-      expect { PublishedPost.all.reverse }.to raise_error(Cequel::Record::IllegalQuery)
+      expect { PublishedPost.all.reverse }.to raise_error(CassandraKit::Record::IllegalQuery)
     end
 
     it 'should use the correct ordering column in deeply nested models' do
-      expect(Comment['cassandra']['cequel0'].reverse.map(&:body)).
+      expect(Comment['cassandra']['cassandra_kit0'].reverse.map(&:body)).
         to eq((0...5).map { |i| "Comment #{i}" }.reverse)
     end
   end
 
   describe 'last' do
     it 'should return the last instance' do
-      expect(Post['cassandra'].last.title).to eq("Cequel 4")
+      expect(Post['cassandra'].last.title).to eq("CassandraKit 4")
     end
 
     it 'should return the last N instances if specified' do
       expect(Post['cassandra'].last(3).map(&:title)).
-        to eq(["Cequel 2", "Cequel 3", "Cequel 4"])
+        to eq(["CassandraKit 2", "CassandraKit 3", "CassandraKit 4"])
     end
   end
 
@@ -678,7 +678,7 @@ describe Cequel::Record::RecordSet do
     context 'when there are no posts' do
       it 'raises a RecordNotFound exception with a meaningful message' do
         expect_any_instance_of(described_class).to receive(:first).and_return(nil)
-        expect { Post['1'].first! }.to raise_error Cequel::Record::RecordNotFound,
+        expect { Post['1'].first! }.to raise_error CassandraKit::Record::RecordNotFound,
           "Couldn't find record with keys: blog_subdomain: 1"
       end
     end
@@ -706,7 +706,7 @@ describe Cequel::Record::RecordSet do
       it { is_expected.not_to be_loaded(:description) }
       specify { expect { subject.name }.to_not raise_error }
       specify { expect { subject.description }.
-        to raise_error(Cequel::Record::MissingAttributeError) }
+        to raise_error(CassandraKit::Record::MissingAttributeError) }
     end
 
     context 'with block' do
@@ -739,53 +739,53 @@ describe Cequel::Record::RecordSet do
       end
 
       it 'should correctly query for both primary key columns' do
-        expect(Post.where(blog_subdomain: 'cassandra', permalink: 'cequel0'))
+        expect(Post.where(blog_subdomain: 'cassandra', permalink: 'cassandra_kit0'))
           .to eq(cassandra_posts.first(1))
       end
 
       it 'should correctly query for both primary key columns chained' do
         expect(Post.where(blog_subdomain: 'cassandra')
-               .where(permalink: 'cequel0'))
+               .where(permalink: 'cassandra_kit0'))
           .to eq(cassandra_posts.first(1))
       end
 
       it 'should perform range query when passed range' do
         expect(Post.where(blog_subdomain: %w(cassandra),
-                          permalink: 'cequel0'..'cequel2'))
+                          permalink: 'cassandra_kit0'..'cassandra_kit2'))
           .to eq(cassandra_posts.first(3))
       end
 
       it 'should raise error if lower-order primary key specified without higher' do
-        expect { Post.where(permalink: 'cequel0').first }
-          .to raise_error(Cequel::Record::IllegalQuery)
+        expect { Post.where(permalink: 'cassandra_kit0').first }
+          .to raise_error(CassandraKit::Record::IllegalQuery)
       end
     end
 
     context 'secondary indexed column' do
       it 'should query for secondary indexed columns with two arguments' do
         expect(Post.where(author_id: uuids.first).map(&:permalink)).
-          to eq(%w(cequel0 cequel2 cequel4))
+          to eq(%w(cassandra_kit0 cassandra_kit2 cassandra_kit4))
       end
 
       it 'should query for secondary indexed columns with hash argument' do
         expect(Post.where(author_id: uuids.first).map(&:permalink)).
-          to eq(%w(cequel0 cequel2 cequel4))
+          to eq(%w(cassandra_kit0 cassandra_kit2 cassandra_kit4))
       end
 
       it 'should not allow multiple columns in the arguments' do
         expect { Post.where(author_id: uuids.first, author_name: 'Mat Brown') }
-          .to raise_error(Cequel::Record::IllegalQuery)
+          .to raise_error(CassandraKit::Record::IllegalQuery)
       end
 
       it 'should not allow chaining of multiple columns' do
         expect { Post.where(author_id: uuids.first).
           where(author_name: 'Mat Brown') }.
-          to raise_error(Cequel::Record::IllegalQuery)
+          to raise_error(CassandraKit::Record::IllegalQuery)
       end
 
       it 'should cast argument for column' do
         expect(Post.where(author_id: uuids.first.to_s).map(&:permalink)).
-          to eq(%w(cequel0 cequel2 cequel4))
+          to eq(%w(cassandra_kit0 cassandra_kit2 cassandra_kit4))
       end
     end
 
@@ -815,20 +815,20 @@ describe Cequel::Record::RecordSet do
 
     context 'non-indexed column' do
       it 'should raise ArgumentError if column is not indexed' do
-        expect { Post.where(title: 'Cequel 0') }.
+        expect { Post.where(title: 'CassandraKit 0') }.
           to raise_error(ArgumentError)
       end
     end
 
     context 'allow_filtering!', cql: '~> 3.4' do
       it 'should allow filtering for non-indexed columns' do
-        expect(Post.allow_filtering!.where(title: 'Cequel 0').entries.length).to be(1)
+        expect(Post.allow_filtering!.where(title: 'CassandraKit 0').entries.length).to be(1)
       end
 
       it 'should allow filtering for more than one non-indexed column' do
         expect(Post.allow_filtering!.where(
-          title: 'Cequel 0',
-          subtitle: 'New Cequel Post'
+          title: 'CassandraKit 0',
+          subtitle: 'New CassandraKit Post'
         ).entries.length).to be(1)
       end
     end
@@ -882,29 +882,29 @@ describe Cequel::Record::RecordSet do
 
     context 'without scoping' do
       it 'should raise DangerousQueryError when attempting to count' do
-        expect{ Post.count }.to raise_error(Cequel::Record::DangerousQueryError)
+        expect{ Post.count }.to raise_error(CassandraKit::Record::DangerousQueryError)
       end
 
       it 'should raise DangerousQueryError when attempting to access size' do
-        expect{ Post.size }.to raise_error(Cequel::Record::DangerousQueryError)
+        expect{ Post.size }.to raise_error(CassandraKit::Record::DangerousQueryError)
       end
 
       it 'should raise DangerousQueryError when attempting to access length' do
-        expect{ Post.length }.to raise_error(Cequel::Record::DangerousQueryError)
+        expect{ Post.length }.to raise_error(CassandraKit::Record::DangerousQueryError)
       end
     end
 
     context 'with scoping' do
       it 'should raise DangerousQueryError when attempting to count' do
-        expect{ Post['postgres'].count }.to raise_error(Cequel::Record::DangerousQueryError)
+        expect{ Post['postgres'].count }.to raise_error(CassandraKit::Record::DangerousQueryError)
       end
 
       it 'should raise DangerousQueryError when attempting to access size' do
-        expect{ Post['postgres'].size }.to raise_error(Cequel::Record::DangerousQueryError)
+        expect{ Post['postgres'].size }.to raise_error(CassandraKit::Record::DangerousQueryError)
       end
 
       it 'should raise DangerousQueryError when attempting to access length' do
-        expect{ Post['postgres'].length }.to raise_error(Cequel::Record::DangerousQueryError)
+        expect{ Post['postgres'].length }.to raise_error(CassandraKit::Record::DangerousQueryError)
       end
     end
   end
@@ -912,7 +912,7 @@ describe Cequel::Record::RecordSet do
   describe 'scope methods' do
     it 'should delegate unknown methods to class singleton with current scope' do
       expect(Post['cassandra'].latest(3).map(&:permalink)).
-        to eq(%w(cequel4 cequel3 cequel2))
+        to eq(%w(cassandra_kit4 cassandra_kit3 cassandra_kit2))
     end
 
     it 'should raise NoMethodError if undefined method called' do
@@ -936,11 +936,11 @@ describe Cequel::Record::RecordSet do
     end
 
     it 'should update fully specified collection' do
-      Post['cassandra'].values_at('cequel0', 'cequel1', 'cequel2').
+      Post['cassandra'].values_at('cassandra_kit0', 'cassandra_kit1', 'cassandra_kit2').
         update_all(title: 'Same Title')
-      expect(Post['cassandra'].values_at('cequel0', 'cequel1', 'cequel2').map(&:title)).
+      expect(Post['cassandra'].values_at('cassandra_kit0', 'cassandra_kit1', 'cassandra_kit2').map(&:title)).
         to eq(Array.new(3) { 'Same Title' })
-      expect(Post['cassandra'].values_at('cequel3', 'cequel4').map(&:title)).
+      expect(Post['cassandra'].values_at('cassandra_kit3', 'cassandra_kit4').map(&:title)).
         to eq(cassandra_posts.drop(3).map(&:title))
     end
   end

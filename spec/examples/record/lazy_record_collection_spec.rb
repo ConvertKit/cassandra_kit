@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path('../spec_helper', __FILE__)
 
-describe Cequel::Record::LazyRecordCollection do
+describe CassandraKit::Record::LazyRecordCollection do
   context 'handle timestamp attribute correctly (do not split it to array)' do
     model :Event do
       key :timestamp, :timestamp

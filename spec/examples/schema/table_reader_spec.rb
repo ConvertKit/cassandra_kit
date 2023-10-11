@@ -1,23 +1,23 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path('../../spec_helper', __FILE__)
 
-describe Cequel::Schema::TableReader do
+describe CassandraKit::Schema::TableReader do
   let(:table_name) { :"posts_#{SecureRandom.hex(4)}" }
 
   after do
-    cequel.schema.drop_table(table_name)
+    cassandra_kit.schema.drop_table(table_name)
   end
 
   describe ".read(keyspace, table_name)" do
     before do
-      cequel.execute("CREATE TABLE #{table_name} (permalink text PRIMARY KEY)")
-      cequel.send(:cluster).refresh_schema
+      cassandra_kit.execute("CREATE TABLE #{table_name} (permalink text PRIMARY KEY)")
+      cassandra_kit.send(:cluster).refresh_schema
     end
 
     it "returns a table" do
       expect(
-        described_class.read(cequel, table_name)
-      ).to be_kind_of Cequel::Schema::Table
+        described_class.read(cassandra_kit, table_name)
+      ).to be_kind_of CassandraKit::Schema::Table
     end
   end
 
@@ -26,8 +26,8 @@ describe Cequel::Schema::TableReader do
 
     context 'simple key' do
       before do
-        cequel.execute("CREATE TABLE #{table_name} (permalink text PRIMARY KEY)")
-        cequel.send(:cluster).refresh_schema
+        cassandra_kit.execute("CREATE TABLE #{table_name} (permalink text PRIMARY KEY)")
+        cassandra_kit.send(:cluster).refresh_schema
       end
 
       it 'should read name correctly' do
@@ -35,7 +35,7 @@ describe Cequel::Schema::TableReader do
       end
 
       it 'should read type correctly' do
-        expect(table.partition_key_columns.first.type).to be_a(Cequel::Type::Text)
+        expect(table.partition_key_columns.first.type).to be_a(CassandraKit::Type::Text)
       end
 
       it 'should have no nonpartition keys' do
@@ -45,7 +45,7 @@ describe Cequel::Schema::TableReader do
 
     context 'single cluster key' do
       before do
-        cequel.execute <<-CQL
+        cassandra_kit.execute <<-CQL
         CREATE TABLE #{table_name} (
           blog_subdomain text,
           permalink ascii,
@@ -59,7 +59,7 @@ describe Cequel::Schema::TableReader do
       end
 
       it 'should read partition key type' do
-        expect(table.partition_key_columns.map(&:type)).to eq([Cequel::Type::Text.instance])
+        expect(table.partition_key_columns.map(&:type)).to eq([CassandraKit::Type::Text.instance])
       end
 
       it 'should read non-partition key name' do
@@ -68,7 +68,7 @@ describe Cequel::Schema::TableReader do
 
       it 'should read non-partition key type' do
         expect(table.clustering_columns.map(&:type)).
-          to eq([Cequel::Type::Ascii.instance])
+          to eq([CassandraKit::Type::Ascii.instance])
       end
 
       it 'should default clustering order to asc' do
@@ -78,7 +78,7 @@ describe Cequel::Schema::TableReader do
 
     context 'reverse-ordered cluster key' do
       before do
-        cequel.execute <<-CQL
+        cassandra_kit.execute <<-CQL
         CREATE TABLE #{table_name} (
           blog_subdomain text,
           permalink ascii,
@@ -94,7 +94,7 @@ describe Cequel::Schema::TableReader do
 
       it 'should read non-partition key type' do
         expect(table.clustering_columns.map(&:type)).
-          to eq([Cequel::Type::Ascii.instance])
+          to eq([CassandraKit::Type::Ascii.instance])
       end
 
       it 'should recognize reversed clustering order' do
@@ -104,7 +104,7 @@ describe Cequel::Schema::TableReader do
 
     context 'compound cluster key' do
       before do
-        cequel.execute <<-CQL
+        cassandra_kit.execute <<-CQL
         CREATE TABLE #{table_name} (
           blog_subdomain text,
           permalink ascii,
@@ -121,7 +121,7 @@ describe Cequel::Schema::TableReader do
 
       it 'should read non-partition key types' do
         expect(table.clustering_columns.map(&:type)).
-          to eq([Cequel::Type::Ascii.instance, Cequel::Type::Uuid.instance])
+          to eq([CassandraKit::Type::Ascii.instance, CassandraKit::Type::Uuid.instance])
       end
 
       it 'should read heterogeneous clustering orders' do
@@ -131,7 +131,7 @@ describe Cequel::Schema::TableReader do
 
     context 'compound partition key' do
       before do
-        cequel.execute <<-CQL
+        cassandra_kit.execute <<-CQL
         CREATE TABLE #{table_name} (
           blog_subdomain text,
           permalink ascii,
@@ -146,7 +146,7 @@ describe Cequel::Schema::TableReader do
 
       it 'should read partition key types' do
         expect(table.partition_key_columns.map(&:type)).
-          to eq([Cequel::Type::Text.instance, Cequel::Type::Ascii.instance])
+          to eq([CassandraKit::Type::Text.instance, CassandraKit::Type::Ascii.instance])
       end
 
       it 'should have empty nonpartition keys' do
@@ -157,7 +157,7 @@ describe Cequel::Schema::TableReader do
 
     context 'compound partition and cluster keys' do
       before do
-        cequel.execute <<-CQL
+        cassandra_kit.execute <<-CQL
         CREATE TABLE #{table_name} (
           blog_subdomain text,
           permalink ascii,
@@ -175,7 +175,7 @@ describe Cequel::Schema::TableReader do
 
       it 'should read partition key types' do
         expect(table.partition_key_columns.map(&:type)).
-          to eq([Cequel::Type::Text.instance, Cequel::Type::Ascii.instance])
+          to eq([CassandraKit::Type::Text.instance, CassandraKit::Type::Ascii.instance])
       end
 
       it 'should read non-partition key names' do
@@ -185,7 +185,7 @@ describe Cequel::Schema::TableReader do
 
       it 'should read non-partition key types' do
         expect(table.clustering_columns.map(&:type)).to eq(
-                                                          [Cequel::Type::Uuid.instance, Cequel::Type::Timestamp.instance]
+                                                          [CassandraKit::Type::Uuid.instance, CassandraKit::Type::Timestamp.instance]
                                                         )
       end
 
@@ -198,7 +198,7 @@ describe Cequel::Schema::TableReader do
     context 'data columns' do
 
       before do
-        cequel.execute <<-CQL
+        cassandra_kit.execute <<-CQL
           CREATE TABLE #{table_name} (
             blog_subdomain text,
             permalink ascii,
@@ -210,14 +210,14 @@ describe Cequel::Schema::TableReader do
             PRIMARY KEY (blog_subdomain, permalink)
           )
         CQL
-        cequel.execute("CREATE INDEX posts_author_id_idx ON #{table_name} (author_id)")
+        cassandra_kit.execute("CREATE INDEX posts_author_id_idx ON #{table_name} (author_id)")
       end
 
       it 'should read types of scalar data columns' do
         expect(table.data_columns.find { |column| column.name == :title }.type).
-          to eq(Cequel::Type[:text])
+          to eq(CassandraKit::Type[:text])
         expect(table.data_columns.find { |column| column.name == :author_id }.type).
-          to eq(Cequel::Type[:uuid])
+          to eq(CassandraKit::Type[:uuid])
       end
 
       it 'should read index attributes' do
@@ -232,37 +232,37 @@ describe Cequel::Schema::TableReader do
 
       it 'should read list columns' do
         expect(table.data_columns.find { |column| column.name == :categories }).
-          to be_a(Cequel::Schema::List)
+          to be_a(CassandraKit::Schema::List)
       end
 
       it 'should read list column type' do
         expect(table.data_columns.find { |column| column.name == :categories }.type).
-          to eq(Cequel::Type[:text])
+          to eq(CassandraKit::Type[:text])
       end
 
       it 'should read set columns' do
         expect(table.data_columns.find { |column| column.name == :tags }).
-          to be_a(Cequel::Schema::Set)
+          to be_a(CassandraKit::Schema::Set)
       end
 
       it 'should read set column type' do
         expect(table.data_columns.find { |column| column.name == :tags }.type).
-          to eq(Cequel::Type[:text])
+          to eq(CassandraKit::Type[:text])
       end
 
       it 'should read map columns' do
         expect(table.data_columns.find { |column| column.name == :trackbacks }).
-          to be_a(Cequel::Schema::Map)
+          to be_a(CassandraKit::Schema::Map)
       end
 
       it 'should read map column key type' do
         expect(table.data_columns.find { |column| column.name == :trackbacks }.key_type).
-          to eq(Cequel::Type[:timestamp])
+          to eq(CassandraKit::Type[:timestamp])
       end
 
       it 'should read map column value type' do
         expect(table.data_columns.find { |column| column.name == :trackbacks }.
-                value_type).to eq(Cequel::Type[:ascii])
+                value_type).to eq(CassandraKit::Type[:ascii])
       end
 
     end # context 'data columns'
@@ -270,7 +270,7 @@ describe Cequel::Schema::TableReader do
     context 'storage properties' do
 
       before do
-        cequel.execute <<-CQL
+        cassandra_kit.execute <<-CQL
           CREATE TABLE #{table_name} (permalink text PRIMARY KEY)
           WITH bloom_filter_fp_chance = 0.02
           AND comment = 'Posts table'
@@ -330,7 +330,7 @@ describe Cequel::Schema::TableReader do
 
     context 'skinny-row compact storage' do
       before do
-        cequel.execute <<-CQL
+        cassandra_kit.execute <<-CQL
           CREATE TABLE #{table_name} (permalink text PRIMARY KEY, title text, body text)
           WITH COMPACT STORAGE
         CQL
@@ -339,16 +339,16 @@ describe Cequel::Schema::TableReader do
 
       it { is_expected.to be_compact_storage }
       its(:partition_key_columns) { should ==
-                                    [Cequel::Schema::PartitionKey.new(:permalink, :text)] }
+                                    [CassandraKit::Schema::PartitionKey.new(:permalink, :text)] }
       its(:clustering_columns) { should be_empty }
       specify { expect(table.data_columns).to contain_exactly(
-                                                Cequel::Schema::DataColumn.new(:title, :text),
-                                                Cequel::Schema::DataColumn.new(:body, :text)) }
+                                                CassandraKit::Schema::DataColumn.new(:title, :text),
+                                                CassandraKit::Schema::DataColumn.new(:body, :text)) }
     end
 
     context 'wide-row compact storage' do
       before do
-        cequel.execute <<-CQL
+        cassandra_kit.execute <<-CQL
           CREATE TABLE #{table_name} (
             blog_subdomain text,
             id uuid,
@@ -362,25 +362,25 @@ describe Cequel::Schema::TableReader do
 
       it { is_expected.to be_compact_storage }
       its(:partition_key_columns) { should ==
-                                    [Cequel::Schema::PartitionKey.new(:blog_subdomain, :text)] }
+                                    [CassandraKit::Schema::PartitionKey.new(:blog_subdomain, :text)] }
       its(:clustering_columns) { should ==
-                                 [Cequel::Schema::ClusteringColumn.new(:id, :uuid)] }
+                                 [CassandraKit::Schema::ClusteringColumn.new(:id, :uuid)] }
       its(:data_columns) { should ==
-                           [Cequel::Schema::DataColumn.new(:data, :text)] }
+                           [CassandraKit::Schema::DataColumn.new(:data, :text)] }
     end
 
     context 'materialized view exists', cql: '~> 3.4' do
       let!(:name) { table_name }
       let(:view_name) { "#{name}_view" }
       before do
-        cequel.execute <<-CQL
+        cassandra_kit.execute <<-CQL
           CREATE TABLE #{table_name} (
             blog_subdomain text,
             permalink ascii,
             PRIMARY KEY (blog_subdomain, permalink)
           )
         CQL
-        cequel.execute <<-CQL
+        cassandra_kit.execute <<-CQL
           CREATE MATERIALIZED VIEW #{view_name} AS
             SELECT blog_subdomain, permalink
             FROM #{name}
@@ -389,7 +389,7 @@ describe Cequel::Schema::TableReader do
         CQL
       end
       after do
-        cequel.schema.drop_materialized_view(view_name)
+        cassandra_kit.schema.drop_materialized_view(view_name)
       end
 
       let(:view) { described_class.new(fetch_view_data).call }
@@ -413,12 +413,12 @@ describe Cequel::Schema::TableReader do
 
       it { is_expected.to be_compact_storage }
       its(:partition_key_columns) { is_expected.to eq(
-                                                     [Cequel::Schema::PartitionKey.new(:permalink, :text)]
+                                                     [CassandraKit::Schema::PartitionKey.new(:permalink, :text)]
                                                    ) }
       its(:clustering_columns) { is_expected.to be_empty }
       its(:data_columns) { is_expected.to match_array(
-                                            [Cequel::Schema::DataColumn.new(:title, :text),
-                                             Cequel::Schema::DataColumn.new(:body, :text)]
+                                            [CassandraKit::Schema::DataColumn.new(:title, :text),
+                                             CassandraKit::Schema::DataColumn.new(:body, :text)]
                                           ) }
     end
 
@@ -433,28 +433,28 @@ describe Cequel::Schema::TableReader do
 
       it { is_expected.to be_compact_storage }
       its(:partition_key_columns) { is_expected.to eq(
-                                                     [Cequel::Schema::PartitionKey.new(:blog_subdomain, :text)]
+                                                     [CassandraKit::Schema::PartitionKey.new(:blog_subdomain, :text)]
                                                    ) }
       its(:clustering_columns) { is_expected.to eq(
-                                                  [Cequel::Schema::ClusteringColumn.new(:column1, :uuid)]
+                                                  [CassandraKit::Schema::ClusteringColumn.new(:column1, :uuid)]
                                                 ) }
       its(:data_columns) { is_expected.to eq(
-                                            [Cequel::Schema::DataColumn.new(:value, :text)]
+                                            [CassandraKit::Schema::DataColumn.new(:value, :text)]
                                           ) }
     end
   end
 
   def fetch_table_data(name=table_name)
-    cequel.send(:cluster).refresh_schema
-    cequel.send(:cluster)
-      .keyspace(cequel.name.to_s)
+    cassandra_kit.send(:cluster).refresh_schema
+    cassandra_kit.send(:cluster)
+      .keyspace(cassandra_kit.name.to_s)
       .table(name.to_s)
   end
 
   def fetch_view_data(name=view_name)
-    cequel.send(:cluster).refresh_schema
-    cequel.send(:cluster)
-      .keyspace(cequel.name.to_s)
+    cassandra_kit.send(:cluster).refresh_schema
+    cassandra_kit.send(:cluster)
+      .keyspace(cassandra_kit.name.to_s)
       .materialized_view(name.to_s)
   end
 end

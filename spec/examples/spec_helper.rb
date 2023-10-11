@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path('../../environment', __FILE__)
-require 'cequel'
+require 'cassandra_kit'
 require 'tzinfo'
 require 'pp'
 
@@ -12,12 +12,12 @@ Dir.glob(File.expand_path('../../shared/**/*.rb', __FILE__)).each do |file|
 end
 
 RSpec.configure do |config|
-  config.include(Cequel::SpecSupport::Helpers)
-  config.extend(Cequel::SpecSupport::Macros)
+  config.include(CassandraKit::SpecSupport::Helpers)
+  config.extend(CassandraKit::SpecSupport::Macros)
 
   {
     rails: ActiveSupport::VERSION::STRING,
-    cql: Cequel::SpecSupport::Helpers.cql_version,
+    cql: CassandraKit::SpecSupport::Helpers.cql_version,
   }.each do |tag, actual_version|
     config.filter_run_excluding tag => ->(required_version) {
       !Gem::Requirement.new(required_version).
@@ -30,15 +30,15 @@ RSpec.configure do |config|
   end
 
   config.before(:all) do
-    cequel.schema.create!
-    Cequel::Record.connection = cequel
+    cassandra_kit.schema.create!
+    CassandraKit::Record.connection = cassandra_kit
     Time.zone = 'UTC'
     I18n.enforce_available_locales = false
     SafeYAML::OPTIONS[:default_mode] = :safe if defined? SafeYAML
   end
 
   config.after(:all) do
-    cequel.schema.drop!
+    cassandra_kit.schema.drop!
   end
 
   config.after(:each) { Timecop.return }

@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 require_relative 'spec_helper'
 
-describe Cequel::Record::MassAssignment do
+describe CassandraKit::Record::MassAssignment do
   context 'with strong parameters', rails: '>= 4.0' do
     model :Post do
       key :permalink, :text
@@ -9,16 +9,16 @@ describe Cequel::Record::MassAssignment do
     end
 
     it 'should allow assignment of vanilla hash' do
-      expect(Post.new(:title => 'Cequel').title).to eq('Cequel')
+      expect(Post.new(:title => 'CassandraKit').title).to eq('CassandraKit')
     end
 
     it 'should allow assignment of permitted strong params' do
-      expect(Post.new(StrongParams.new(true, :title => 'Cequel')).title).
-        to eq('Cequel')
+      expect(Post.new(StrongParams.new(true, :title => 'CassandraKit')).title).
+        to eq('CassandraKit')
     end
 
     it 'should raise exception when assigned non-permitted strong params' do
-      expect { Post.new(StrongParams.new(false, :title => 'Cequel')) }.
+      expect { Post.new(StrongParams.new(false, :title => 'CassandraKit')) }.
         to raise_error(ActiveModel::ForbiddenAttributesError)
     end
 
@@ -43,10 +43,10 @@ describe Cequel::Record::MassAssignment do
       attr_accessible :title
     end
 
-    let(:post) { Post.new(:title => 'Cequel', :page_views => 1000) }
+    let(:post) { Post.new(:title => 'CassandraKit', :page_views => 1000) }
 
     it 'should allow assignment of accessible params' do
-      expect(post.title).to eq('Cequel')
+      expect(post.title).to eq('CassandraKit')
     end
 
     it 'should not allow assignment of inaccessible params' do

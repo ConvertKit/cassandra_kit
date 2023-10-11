@@ -1,6 +1,6 @@
 # -*- encoding : utf-8 -*-
 class <%= class_name %>
-  include Cequel::Record
+  include CassandraKit::Record
 
   key :id, :uuid, auto: true
   <%- attributes.each do |attribute| -%>

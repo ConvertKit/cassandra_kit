@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path('../spec_helper', __FILE__)
 
-describe Cequel::Record::List do
+describe CassandraKit::Record::List do
   model :Post do
     key :permalink, :text
     column :title, :text
@@ -9,19 +9,19 @@ describe Cequel::Record::List do
     list :contributor_ids, :int
   end
 
-  let(:scope) { cequel[Post.table_name].where(:permalink => 'cequel') }
+  let(:scope) { cassandra_kit[Post.table_name].where(:permalink => 'cassandra_kit') }
   subject { scope.first }
 
   let! :post do
     Post.new do |post|
-      post.permalink = 'cequel'
+      post.permalink = 'cassandra_kit'
       post.tags = %w(one two)
       post.contributor_ids = [1, 2]
     end.tap(&:save)
   end
 
   let! :unloaded_post do
-    Post['cequel']
+    Post['cassandra_kit']
   end
 
   context 'new record' do
@@ -46,7 +46,7 @@ describe Cequel::Record::List do
 
   describe '#<<' do
     it 'should not re-apply after creation' do
-      post = Post.new(permalink: 'cequel')
+      post = Post.new(permalink: 'cassandra_kit')
       post.tags << 'one'
       post.save!
       post.tags << 'two'
@@ -161,7 +161,7 @@ describe Cequel::Record::List do
     end
 
     it 'should clear elements without loading' do
-      expect(cequel).not_to receive(:execute)
+      expect(cassandra_kit).not_to receive(:execute)
       unloaded_post.tags.clear
     end
 

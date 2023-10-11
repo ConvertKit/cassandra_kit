@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path('../spec_helper', __FILE__)
 
-describe Cequel::Record::Callbacks do
+describe CassandraKit::Record::Callbacks do
   model :Post do
     key :permalink, :text
     column :title, :text
@@ -112,7 +112,7 @@ describe Cequel::Record::Callbacks do
       comment = Comment.new(:body => 'Great web site!')
       comment.instance_after_save =
         -> { expect { Post.find('autopost') }.
-          to raise_error(Cequel::Record::RecordNotFound) }
+          to raise_error(CassandraKit::Record::RecordNotFound) }
       comment.save!
       expect(Post.find('autopost').title).to eq('Auto Post')
     end

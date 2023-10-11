@@ -1,16 +1,16 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path('../../spec_helper', __FILE__)
 
-module Cequel::Schema
+module CassandraKit::Schema
   describe TableDiffer do
 
     let(:table_name) { |ex| unique_table_name("posts", ex) }
     let(:orig_table) {
       Table.new(table_name).tap do |t|
-        t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-        t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text])
-        t.add_column DataColumn.new(:body, Cequel::Type[:text])
-        t.add_column DataColumn.new(:author_name, Cequel::Type[:text], :author_name_idx)
+        t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+        t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text])
+        t.add_column DataColumn.new(:body, CassandraKit::Type[:text])
+        t.add_column DataColumn.new(:author_name, CassandraKit::Type[:text], :author_name_idx)
         t.add_property TableProperty.build(:comment, "Orig comment")
       end
     }
@@ -26,10 +26,10 @@ module Cequel::Schema
     describe ".call" do
       it "returns a Patch" do
         updated_table = Table.new(table_name).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text])
-          t.add_column DataColumn.new(:body, Cequel::Type[:text])
-          t.add_column DataColumn.new(:author_name, Cequel::Type[:text], :author_name_idx)
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:body, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:author_name, CassandraKit::Type[:text], :author_name_idx)
           t.add_property TableProperty.build(:comment, "Orig comment")
         end
 
@@ -40,24 +40,24 @@ module Cequel::Schema
 
       it "fails for table name changes" do
         renamed_table = Table.new(:fancy_new_name).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text])
-          t.add_column DataColumn.new(:body, Cequel::Type[:text])
-          t.add_column DataColumn.new(:author_name, Cequel::Type[:text], :author_name_idx)
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:body, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:author_name, CassandraKit::Type[:text], :author_name_idx)
           t.add_property TableProperty.build(:comment, "Orig comment")
         end
 
         expect{
           described_class.new(orig_table, renamed_table).call
-        }.to raise_error(Cequel::InvalidSchemaMigration)
+        }.to raise_error(CassandraKit::InvalidSchemaMigration)
       end
 
       it "succeed if name difference it immaterial" do
         equiv_table = Table.new(table_name.to_s).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text])
-          t.add_column DataColumn.new(:body, Cequel::Type[:text])
-          t.add_column DataColumn.new(:author_name, Cequel::Type[:text], :author_name_idx)
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:body, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:author_name, CassandraKit::Type[:text], :author_name_idx)
           t.add_property TableProperty.build(:comment, "Orig comment")
         end
 
@@ -68,51 +68,51 @@ module Cequel::Schema
 
       it "fails for type changes" do
         updated_table = Table.new(table_name).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text])
-          t.add_column DataColumn.new(:body, Cequel::Type[:ascii])
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:body, CassandraKit::Type[:ascii])
         end
 
         expect{
           described_class.new(orig_table, updated_table).call
-        }.to raise_error(Cequel::InvalidSchemaMigration)
+        }.to raise_error(CassandraKit::InvalidSchemaMigration)
       end
 
       it "fails for partition key changes" do
         updated_table = Table.new(table_name).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column PartitionKey.new(:date, Cequel::Type[:timestamp])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text])
-          t.add_column DataColumn.new(:body, Cequel::Type[:text])
-          t.add_column DataColumn.new(:author_name, Cequel::Type[:text], :author_name_idx)
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column PartitionKey.new(:date, CassandraKit::Type[:timestamp])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:body, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:author_name, CassandraKit::Type[:text], :author_name_idx)
           t.add_property TableProperty.build(:comment, "Orig comment")
         end
 
         expect{
           described_class.new(orig_table, updated_table).call
-        }.to raise_error(Cequel::InvalidSchemaMigration)
+        }.to raise_error(CassandraKit::InvalidSchemaMigration)
       end
 
       it "fails for clustering order changes" do
         updated_table = Table.new(table_name).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text], :desc)
-          t.add_column DataColumn.new(:body, Cequel::Type[:text])
-          t.add_column DataColumn.new(:author_name, Cequel::Type[:text], :author_name_idx)
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text], :desc)
+          t.add_column DataColumn.new(:body, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:author_name, CassandraKit::Type[:text], :author_name_idx)
           t.add_property TableProperty.build(:comment, "Orig comment")
         end
 
         expect{
           described_class.new(orig_table, updated_table).call
-        }.to raise_error(Cequel::InvalidSchemaMigration)
+        }.to raise_error(CassandraKit::InvalidSchemaMigration)
       end
 
       it "ignore immaterial changes to clustering order" do
         unchanged_table = Table.new(table_name).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text], :asc)
-          t.add_column DataColumn.new(:body, Cequel::Type[:text])
-          t.add_column DataColumn.new(:author_name, Cequel::Type[:text], :author_name_idx)
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text], :asc)
+          t.add_column DataColumn.new(:body, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:author_name, CassandraKit::Type[:text], :author_name_idx)
           t.add_property TableProperty.build(:comment, "Orig comment")
         end
 
@@ -123,10 +123,10 @@ module Cequel::Schema
 
       it "detects a lack of changes changes" do
         unchanged_table = Table.new(table_name).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text])
-          t.add_column DataColumn.new(:body, Cequel::Type[:text])
-          t.add_column DataColumn.new(:author_name, Cequel::Type[:text], :author_name_idx)
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:body, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:author_name, CassandraKit::Type[:text], :author_name_idx)
           t.add_property TableProperty.build(:comment, "Orig comment")
         end
 
@@ -137,10 +137,10 @@ module Cequel::Schema
 
       it "detects new columns" do
         updated_table = Table.new(table_name).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text])
-          t.add_column DataColumn.new(:body, Cequel::Type[:text])
-          t.add_column DataColumn.new(:created_at, Cequel::Type[:timestamp])
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:body, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:created_at, CassandraKit::Type[:timestamp])
         end
 
         expect(
@@ -150,9 +150,9 @@ module Cequel::Schema
 
       it "detects added index to existing column" do
         updated_table = Table.new(table_name).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text])
-          t.add_column DataColumn.new(:body, Cequel::Type[:text], :my_index_name)
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:body, CassandraKit::Type[:text], :my_index_name)
         end
 
         expect(
@@ -162,10 +162,10 @@ module Cequel::Schema
 
       it "detects dropped index" do
         updated_table = Table.new(table_name).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text])
-          t.add_column DataColumn.new(:body, Cequel::Type[:text])
-          t.add_column DataColumn.new(:author_name, Cequel::Type[:text])
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:body, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:author_name, CassandraKit::Type[:text])
         end
 
         expect(
@@ -175,9 +175,9 @@ module Cequel::Schema
 
       it "detects added index to new column" do
         updated_table = Table.new(table_name).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text])
-          t.add_column DataColumn.new(:category, Cequel::Type[:text], :posts_category_idx)
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:category, CassandraKit::Type[:text], :posts_category_idx)
         end
 
         expect(
@@ -187,9 +187,9 @@ module Cequel::Schema
 
       it "ignores dropped columns" do
         updated_table = Table.new(table_name).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text])
-          t.add_column DataColumn.new(:body, Cequel::Type[:text])
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text])
+          t.add_column DataColumn.new(:body, CassandraKit::Type[:text])
           t.add_property TableProperty.build(:comment, "Orig comment")
         end
 
@@ -200,8 +200,8 @@ module Cequel::Schema
 
       it "detects new property" do
         updated_table = Table.new(table_name).tap do |t|
-          t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
-          t.add_column ClusteringColumn.new(:slug, Cequel::Type[:text])
+          t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
+          t.add_column ClusteringColumn.new(:slug, CassandraKit::Type[:text])
           t.add_property TableProperty.build(:comment, "test")
         end
 
@@ -217,7 +217,7 @@ module Cequel::Schema
       match do |actual_patch|
         actual_patch.changes
           .any? { |actual_change|
-          actual_change.is_a?(Cequel::Schema::Patch::SetTableProperties) &&
+          actual_change.is_a?(CassandraKit::Schema::Patch::SetTableProperties) &&
             actual_change.properties
             .any?{|p|
             p.name.to_s == expected_name.to_s &&
@@ -231,7 +231,7 @@ module Cequel::Schema
       match do |actual_patch|
         actual_patch.changes
           .any? { |actual_change|
-          actual_change.is_a?(Cequel::Schema::Patch::DropIndex) &&
+          actual_change.is_a?(CassandraKit::Schema::Patch::DropIndex) &&
             actual_change.index_name.to_s == index_name.to_s
         }
       end
@@ -243,7 +243,7 @@ module Cequel::Schema
       match do |actual_patch|
         actual_patch.changes
           .any? { |actual_change|
-          actual_change.is_a?(Cequel::Schema::Patch::AddIndex) &&
+          actual_change.is_a?(CassandraKit::Schema::Patch::AddIndex) &&
             @column_matcher === actual_change.column &&
             actual_change.index_name.to_s == index_name.to_s
         }
@@ -260,7 +260,7 @@ module Cequel::Schema
       match do |actual_patch|
         actual_patch.changes
           .any? { |actual_change|
-          actual_change.is_a?(Cequel::Schema::Patch::AddColumn) &&
+          actual_change.is_a?(CassandraKit::Schema::Patch::AddColumn) &&
             actual_change.column.name == name &&
             @type_matcher === actual_change.column.type
         }
@@ -269,7 +269,7 @@ module Cequel::Schema
       chain :of_type do |type_or_matcher|
         @type_matcher = if type_or_matcher.respond_to?(:call)
                           type_or_matcher
-                        elsif t = Cequel::Type[type_or_matcher]
+                        elsif t = CassandraKit::Type[type_or_matcher]
                           ->(type) { type == t }
                         else
                           fail "unsupported type matcher: #{type_or_matcher.inspect}"

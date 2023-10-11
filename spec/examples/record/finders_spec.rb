@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 require_relative 'spec_helper'
 
-describe Cequel::Record::Finders do
+describe CassandraKit::Record::Finders do
   model :Blog do
     key :subdomain, :text
     column :name, :text
@@ -23,17 +23,17 @@ describe Cequel::Record::Finders do
   end
 
   let :blogs do
-    cequel.batch do
+    cassandra_kit.batch do
       5.times.map do |i|
         Blog.create!(subdomain: "cassandra#{i}", name: 'Cassandra')
       end
     end
   end
 
-  let(:author_ids) { Array.new(2) { Cequel.uuid }}
+  let(:author_ids) { Array.new(2) { CassandraKit.uuid }}
 
   let :cassandra_posts do
-    cequel.batch do
+    cassandra_kit.batch do
       5.times.map do |i|
         Post.create!(
           blog_subdomain: 'cassandra',
@@ -44,7 +44,7 @@ describe Cequel::Record::Finders do
   end
 
   let :postgres_posts do
-    cequel.batch do
+    cassandra_kit.batch do
       5.times.map do |i|
         Post.create!(blog_subdomain: 'postgres')
       end
@@ -112,7 +112,7 @@ describe Cequel::Record::Finders do
       end
 
       it 'should not exist for all keys' do
-        expect { Post.find_all_by_blog_subdomain_and_id('f', Cequel.uuid) }
+        expect { Post.find_all_by_blog_subdomain_and_id('f', CassandraKit.uuid) }
           .to raise_error(NoMethodError)
       end
     end

@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path('../spec_helper', __FILE__)
 
-describe Cequel::Record::Properties do
+describe CassandraKit::Record::Properties do
 
   describe 'property accessors' do
     model :Post do
@@ -196,13 +196,13 @@ describe Cequel::Record::Properties do
     end
 
     it 'should auto-generate UUID key' do
-      expect(Cequel.uuid?(Post.new.id)).to eq(true)
+      expect(CassandraKit.uuid?(Post.new.id)).to eq(true)
     end
 
     it 'should raise ArgumentError if auto specified for non-UUID' do
       expect do
         Class.new do
-          include Cequel::Record
+          include CassandraKit::Record
           self.table_name = "foo"
           key :subdomain, :text, auto: true
         end

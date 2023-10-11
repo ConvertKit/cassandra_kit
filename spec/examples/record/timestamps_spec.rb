@@ -1,6 +1,6 @@
 require File.expand_path('../spec_helper', __FILE__)
 
-describe Cequel::Record::Timestamps do
+describe CassandraKit::Record::Timestamps do
   model :Blog do
     key :subdomain, :text
     column :name, :text
