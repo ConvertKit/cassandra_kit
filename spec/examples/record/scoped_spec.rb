@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 require_relative 'spec_helper'
 
-describe Cequel::Record::Scoped do
+describe CassandraKit::Record::Scoped do
   model :Post do
     key :blog_subdomain, :text
     key :id, :uuid, auto: true

@@ -1,7 +1,7 @@
 # -*- encoding : utf-8 -*-
 require_relative 'spec_helper'
 
-describe Cequel::Record::Associations do
+describe CassandraKit::Record::Associations do
 
   model :Blog do
     key :subdomain, :text
@@ -103,23 +103,23 @@ describe Cequel::Record::Associations do
     it 'should not allow declaring belongs_to after key' do
       expect do
         Class.new do
-          include Cequel::Record
+          include CassandraKit::Record
           self.table_name = "foo"
           key :permalink, :text
           belongs_to :blog
         end
-      end.to raise_error(Cequel::Record::InvalidRecordConfiguration)
+      end.to raise_error(CassandraKit::Record::InvalidRecordConfiguration)
     end
 
     it 'should not allow declaring belongs_to more than once' do
       expect do
         Class.new do
-          include Cequel::Record
+          include CassandraKit::Record
           self.table_name = "foo"
           belongs_to :blog
           belongs_to :user
         end
-      end.to raise_error(Cequel::Record::InvalidRecordConfiguration)
+      end.to raise_error(CassandraKit::Record::InvalidRecordConfiguration)
     end
 
     context "with partition => true" do
@@ -170,25 +170,25 @@ describe Cequel::Record::Associations do
       it 'should not allow declaring belongs_to after key' do
         expect do
           Class.new do
-            include Cequel::Record
+            include CassandraKit::Record
             self.table_name = "foo"
 
             key :permalink, :text
             belongs_to :post, partition: true
           end
-        end.to raise_error(Cequel::Record::InvalidRecordConfiguration)
+        end.to raise_error(CassandraKit::Record::InvalidRecordConfiguration)
       end
 
       it 'should not allow declaring belongs_to more than once' do
         expect do
           Class.new do
-            include Cequel::Record
+            include CassandraKit::Record
             self.table_name = "foo"
 
             belongs_to :post, partition: true
             belongs_to :user
           end
-        end.to raise_error(Cequel::Record::InvalidRecordConfiguration)
+        end.to raise_error(CassandraKit::Record::InvalidRecordConfiguration)
       end
     end
 
@@ -240,7 +240,7 @@ describe Cequel::Record::Associations do
   end
 
   describe '::has_many' do
-    let(:blog) { Blog.new { |blog| blog.subdomain = 'cequel' }.tap(&:save) }
+    let(:blog) { Blog.new { |blog| blog.subdomain = 'cassandra_kit' }.tap(&:save) }
     let!(:posts) do
       3.times.map do |i|
         Post.new do |post|
@@ -289,7 +289,7 @@ describe Cequel::Record::Associations do
 
     it 'should support #select with arguments' do
       expect { blog.posts.select(:title).first.id }
-        .to raise_error(Cequel::Record::MissingAttributeError)
+        .to raise_error(CassandraKit::Record::MissingAttributeError)
     end
 
     it 'should load #first directly from the database if unloaded' do
@@ -304,15 +304,15 @@ describe Cequel::Record::Associations do
     end
 
     it 'should raise DangerousQueryError for #count' do
-      expect{ blog.posts.count }.to raise_error(Cequel::Record::DangerousQueryError)
+      expect{ blog.posts.count }.to raise_error(CassandraKit::Record::DangerousQueryError)
     end
 
     it 'should raise DangerousQueryError for #length' do
-      expect{ blog.posts.length }.to raise_error(Cequel::Record::DangerousQueryError)
+      expect{ blog.posts.length }.to raise_error(CassandraKit::Record::DangerousQueryError)
     end
 
     it 'should raise DangerousQueryError for #size' do
-      expect{ blog.posts.size }.to raise_error(Cequel::Record::DangerousQueryError)
+      expect{ blog.posts.size }.to raise_error(CassandraKit::Record::DangerousQueryError)
     end
 
     it "does not allow invalid :dependent options" do

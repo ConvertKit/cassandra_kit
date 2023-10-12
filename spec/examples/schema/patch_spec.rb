@@ -1,13 +1,13 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path('../../spec_helper', __FILE__)
 
-module Cequel::Schema
+module CassandraKit::Schema
   describe Patch do
 
     let(:table_name) { |ex| unique_table_name("posts", ex) }
     let(:table) {
       Table.new(table_name).tap do |t|
-        t.add_column PartitionKey.new(:blog_subdomain, Cequel::Type[:text])
+        t.add_column PartitionKey.new(:blog_subdomain, CassandraKit::Type[:text])
       end
     }
 
@@ -30,7 +30,7 @@ module Cequel::Schema
 
       context "no some changes" do
         let(:change) {
-          Patch::AddColumn.new(table, DataColumn.new(:author_name, Cequel::Type[:text]))
+          Patch::AddColumn.new(table, DataColumn.new(:author_name, CassandraKit::Type[:text]))
         }
 
         subject { described_class.new([change]) }
@@ -43,7 +43,7 @@ module Cequel::Schema
 
     describe "#statements" do
       let(:change) {
-        Patch::AddColumn.new(table, DataColumn.new(:author_name, Cequel::Type[:text]))
+        Patch::AddColumn.new(table, DataColumn.new(:author_name, CassandraKit::Type[:text]))
       }
 
       subject { described_class.new([change]) }
@@ -91,7 +91,7 @@ module Cequel::Schema
     let(:table_name) { |ex| unique_table_name("posts", ex) }
     let(:table) { Table.new(table_name) }
     let(:column_with_obsolete_idx) {
-      DataColumn.new(:author_name, Cequel::Type[:text], :author_name_idx)
+      DataColumn.new(:author_name, CassandraKit::Type[:text], :author_name_idx)
     }
 
     describe "#new" do
@@ -122,7 +122,7 @@ module Cequel::Schema
     let(:table_name) { |ex| unique_table_name("posts", ex) }
     let(:table) { Table.new(table_name) }
     let(:column) {
-      DataColumn.new(:author_name, Cequel::Type[:text], :author_name_idx)
+      DataColumn.new(:author_name, CassandraKit::Type[:text], :author_name_idx)
     }
 
     describe "#new" do
@@ -160,7 +160,7 @@ module Cequel::Schema
     let(:table_name) { |ex| unique_table_name("posts", ex) }
     let(:table) { Table.new(table_name) }
     let(:column) {
-      DataColumn.new(:author_name, Cequel::Type[:text])
+      DataColumn.new(:author_name, CassandraKit::Type[:text])
     }
 
     describe "#new" do

@@ -1,10 +1,10 @@
 # -*- encoding : utf-8 -*-
 require File.expand_path('../spec_helper', __FILE__)
 
-describe Cequel::Type do
+describe CassandraKit::Type do
 
   describe 'ascii' do
-    subject { Cequel::Type[:ascii] }
+    subject { CassandraKit::Type[:ascii] }
     its(:cql_name) { should == :ascii }
     its(:internal_name) {
       should == 'org.apache.cassandra.db.marshal.AsciiType' }
@@ -16,7 +16,7 @@ describe Cequel::Type do
   end
 
   describe 'blob' do
-    subject { Cequel::Type[:blob] }
+    subject { CassandraKit::Type[:blob] }
     its(:cql_name) { should == :blob }
     its(:internal_name) {
       should == 'org.apache.cassandra.db.marshal.BytesType' }
@@ -29,7 +29,7 @@ describe Cequel::Type do
   end
 
   describe 'boolean' do
-    subject { Cequel::Type[:boolean] }
+    subject { CassandraKit::Type[:boolean] }
     its(:cql_name) { should == :boolean }
     its(:internal_name) {
       should == 'org.apache.cassandra.db.marshal.BooleanType' }
@@ -42,7 +42,7 @@ describe Cequel::Type do
   end
 
   describe 'counter' do
-    subject { Cequel::Type[:counter] }
+    subject { CassandraKit::Type[:counter] }
     its(:cql_name) { should == :counter }
     its(:internal_name) {
       should == 'org.apache.cassandra.db.marshal.CounterColumnType' }
@@ -54,7 +54,7 @@ describe Cequel::Type do
   end
 
   describe 'decimal' do
-    subject { Cequel::Type[:decimal] }
+    subject { CassandraKit::Type[:decimal] }
     its(:cql_name) { should == :decimal }
     its(:internal_name) {
       should == 'org.apache.cassandra.db.marshal.DecimalType' }
@@ -68,7 +68,7 @@ describe Cequel::Type do
   end
 
   describe 'double' do
-    subject { Cequel::Type[:double] }
+    subject { CassandraKit::Type[:double] }
     its(:cql_name) { should == :double }
     its(:internal_name) {
       should == 'org.apache.cassandra.db.marshal.DoubleType' }
@@ -83,7 +83,7 @@ describe Cequel::Type do
   end
 
   describe 'float' do
-    subject { Cequel::Type[:float] }
+    subject { CassandraKit::Type[:float] }
     its(:cql_name) { should == :float }
     its(:internal_name) {
       should == 'org.apache.cassandra.db.marshal.FloatType' }
@@ -98,14 +98,14 @@ describe Cequel::Type do
   end
 
   describe 'inet' do
-    subject { Cequel::Type[:inet] }
+    subject { CassandraKit::Type[:inet] }
     its(:cql_name) { should == :inet }
     its(:internal_name) {
       should == 'org.apache.cassandra.db.marshal.InetAddressType' }
   end
 
   describe 'int' do
-    subject { Cequel::Type[:int] }
+    subject { CassandraKit::Type[:int] }
     its(:cql_name) { should == :int }
     its(:internal_name) {
       should == 'org.apache.cassandra.db.marshal.Int32Type' }
@@ -120,7 +120,7 @@ describe Cequel::Type do
   end
 
   describe 'bigint' do
-    subject { Cequel::Type[:bigint] }
+    subject { CassandraKit::Type[:bigint] }
     its(:cql_name) { should == :bigint }
     its(:internal_name) {
       should == 'org.apache.cassandra.db.marshal.LongType' }
@@ -135,10 +135,10 @@ describe Cequel::Type do
   end
 
   describe 'text' do
-    subject { Cequel::Type[:text] }
+    subject { CassandraKit::Type[:text] }
     its(:cql_name) { should == :text }
     its(:internal_name) { should == 'org.apache.cassandra.db.marshal.UTF8Type' }
-    it { is_expected.to eq(Cequel::Type[:varchar]) }
+    it { is_expected.to eq(CassandraKit::Type[:varchar]) }
 
     describe '#cast' do
       specify { expect(subject.cast('cql')).to eq('cql') }
@@ -150,7 +150,7 @@ describe Cequel::Type do
   end
 
   describe 'timestamp' do
-    subject { Cequel::Type[:timestamp] }
+    subject { CassandraKit::Type[:timestamp] }
     its(:cql_name) { should == :timestamp }
     its(:internal_name) { should == 'org.apache.cassandra.db.marshal.DateType' }
 
@@ -165,7 +165,7 @@ describe Cequel::Type do
   end
 
   describe 'date' do
-    subject { Cequel::Type[:date] }
+    subject { CassandraKit::Type[:date] }
     its(:cql_name) { should == :date }
     its(:internal_name) { should == 'org.apache.cassandra.db.marshal.DateType' }
 
@@ -179,20 +179,20 @@ describe Cequel::Type do
   end
 
   describe 'timeuuid' do
-    subject { Cequel::Type[:timeuuid] }
+    subject { CassandraKit::Type[:timeuuid] }
     its(:cql_name) { should == :timeuuid }
     its(:internal_name) {
       should == 'org.apache.cassandra.db.marshal.TimeUUIDType' }
   end
 
   describe 'uuid' do
-    subject { Cequel::Type[:uuid] }
+    subject { CassandraKit::Type[:uuid] }
     its(:cql_name) { should == :uuid }
     its(:internal_name) {
       should == 'org.apache.cassandra.db.marshal.UUIDType' }
 
     describe '#cast' do
-      let(:uuid) { Cequel.uuid }
+      let(:uuid) { CassandraKit.uuid }
       specify { expect(subject.cast(uuid)).to eq(uuid) }
       specify { expect(subject.cast(uuid.to_s)).to eq(uuid) }
       specify { expect(subject.cast(uuid.value)).to eq(uuid) }
@@ -204,7 +204,7 @@ describe Cequel::Type do
   end
 
   describe 'varint' do
-    subject { Cequel::Type[:varint] }
+    subject { CassandraKit::Type[:varint] }
     its(:cql_name) { should == :varint }
     its(:internal_name) {
       should == 'org.apache.cassandra.db.marshal.IntegerType' }
@@ -234,10 +234,10 @@ describe Cequel::Type do
       [Time.at(1401323181, 381000).in_time_zone, '1401323181381'],
       [Date.parse('2014-05-28'), "1401235200000"],
       [Time.at(1401323181, 381000).to_datetime, '1401323181381'],
-      [Cequel.uuid("dbf51e0e-e6c7-11e3-be60-237d76548395"),
+      [CassandraKit.uuid("dbf51e0e-e6c7-11e3-be60-237d76548395"),
        "dbf51e0e-e6c7-11e3-be60-237d76548395"]
     ].each do |input, output|
-      specify { expect(Cequel::Type.quote(input)).to eq(output) }
+      specify { expect(CassandraKit::Type.quote(input)).to eq(output) }
     end
   end
 

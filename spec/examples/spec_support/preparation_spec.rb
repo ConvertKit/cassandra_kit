@@ -1,10 +1,10 @@
 require_relative "../spec_helper"
 
-require "cequel/spec_support"
+require "cassandra_kit/spec_support"
 
-describe Cequel::SpecSupport::Preparation do
+describe CassandraKit::SpecSupport::Preparation do
   subject(:prep) { described_class.new([], quiet: true) }
-  let(:keyspace) { cequel }
+  let(:keyspace) { cassandra_kit }
 
   it "returns itself from #drop_keyspace" do
     expect(prep.drop_keyspace).to eq prep
@@ -34,7 +34,7 @@ describe Cequel::SpecSupport::Preparation do
 
       table_name = "model_in_nonstandard_place_" + SecureRandom.hex(4)
       rec_class = Class.new do
-        include Cequel::Record
+        include CassandraKit::Record
         self.table_name = table_name
         key :sk, :uuid
       end
@@ -46,12 +46,12 @@ describe Cequel::SpecSupport::Preparation do
 
   context "keyspace doesn't exist" do
     before(:each) do
-      Cequel::Record.connection.schema.drop!
+      CassandraKit::Record.connection.schema.drop!
     end
 
     let!(:model) {
       Class.new do
-        include Cequel::Record
+        include CassandraKit::Record
         self.table_name = "blog_" + SecureRandom.hex(4)
         key :name, :text
       end
@@ -68,20 +68,20 @@ describe Cequel::SpecSupport::Preparation do
     end
 
     it "causes #sync_schema to fail" do
-      expect{ prep.sync_schema }.to raise_error(Cequel::NoSuchKeyspaceError)
+      expect{ prep.sync_schema }.to raise_error(CassandraKit::NoSuchKeyspaceError)
     end
   end
 
   # background
 
   before(:each) do
-    Cequel::Record.forget_all_descendants!
+    CassandraKit::Record.forget_all_descendants!
   end
 
   after(:each) do
     begin
-      Cequel::Record.connection.clear_active_connections!
-      Cequel::Record.connection.schema.create!
+      CassandraKit::Record.connection.clear_active_connections!
+      CassandraKit::Record.connection.schema.create!
     rescue
       nil
     end

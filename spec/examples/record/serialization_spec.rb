@@ -15,7 +15,7 @@ describe 'serialization' do
     {
       blog_subdomain: 'big-data',
       id: id,
-      title: 'Cequel',
+      title: 'CassandraKit',
     }
   end
 
