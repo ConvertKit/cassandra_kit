@@ -3,7 +3,7 @@ require File.expand_path('../../spec_helper', __FILE__)
 
 describe CassandraKit::Metal::DataSet do
   posts_tn = "posts_#{SecureRandom.hex(4)}"
-  post_act_tn = "post_activity_#{SecureRandom.hex(4)}" 
+  post_act_tn = "post_activity_#{SecureRandom.hex(4)}"
 
   before :all do
     cassandra_kit.schema.create_table(posts_tn) do
@@ -53,6 +53,19 @@ describe CassandraKit::Metal::DataSet do
     it 'should insert a row' do
       cassandra_kit[posts_tn].insert(row)
       expect(cassandra_kit[posts_tn].where(row_keys).first[:title]).to eq('Fun times')
+    end
+
+    # TODO: test is currently failing locally. At this time I am not sure if
+    # this is functionality we would hope to keep with the paired down gem.
+    # Investigation is needed if this functionality continues to be valuable.
+    xit 'should insert a record when multi-DC option of on' do
+      connection = CassandraKit.connect(host: CassandraKit::SpecSupport::Helpers.host,
+                                  port: CassandraKit::SpecSupport::Helpers.port,
+                                  keyspace: CassandraKit::SpecSupport::Helpers.keyspace_name,
+                                  datacenter: 1)
+
+      connection[posts_tn].insert(row)
+      expect(connection[posts_tn].where(row_keys).first[:title]).to eq('Fun times')
     end
 
     it 'should correctly insert a list' do
