@@ -34,6 +34,19 @@ module CassandraKit
         end
       end
 
+      initializer "cassandra_kit.add_datadog" do
+        if configuration.fetch(:datadog, true)
+          begin
+            require 'ddtrace'
+          rescue LoadError => e
+            Rails.logger.debug(
+              "Datadog APM not installed; skipping Datadog integration")
+          else
+            require 'cassandra_kit/metal/datadog_instrumentation'
+          end
+        end
+      end
+
       rake_tasks do
         require "cassandra_kit/record/tasks"
       end
