@@ -39,7 +39,7 @@ end
 
 desc 'Push gem to repository'
 task :push do
-  system "gem push cassandra_kit-#{Cequel::VERSION}.gem"
+  system "gem push cassandra_kit.gem"
 end
 
 task 'Remove packaged gems'
