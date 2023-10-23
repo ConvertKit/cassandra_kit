@@ -1,20 +1,13 @@
-# TODO change this
-# Cequel #
+# CassandraKit #
 
-Cequel is a Ruby ORM for [Cassandra](http://cassandra.apache.org/) using
+CassandraKit is a Ruby ORM for [Cassandra](http://cassandra.apache.org/) using
 [CQL3][].
 
-[![Gem Version](https://badge.fury.io/rb/cequel.png)](http://badge.fury.io/rb/cequel)
-[![Build Status](https://travis-ci.org/cequel/cequel.png?branch=master)](https://travis-ci.org/cequel/cequel)
-[![Dependency Status](https://gemnasium.com/cequel/cequel.png)](https://gemnasium.com/cequel/cequel)
-[![Code Climate](https://codeclimate.com/github/cequel/cequel.png)](https://codeclimate.com/github/cequel/cequel)
-[![Inline docs](http://inch-ci.org/github/cequel/cequel.png)](http://inch-ci.org/github/cequel/cequel)
-
-`Cequel::Record` is an ActiveRecord-like domain model layer that exposes
+`CassandraKit::Record` is an ActiveRecord-like domain model layer that exposes
 the robust data modeling capabilities of CQL3, including parent-child
 relationships via compound primary keys and collection columns.
 
-The lower-level `Cequel::Metal` layer provides a CQL query builder interface
+The lower-level `CassandraKit::Metal` layer provides a CQL query builder interface
 inspired by the excellent [Sequel](http://sequel.rubyforge.org/) library.
 
 ## Installation ##
@@ -22,9 +15,10 @@ inspired by the excellent [Sequel](http://sequel.rubyforge.org/) library.
 Add it to your Gemfile:
 
 ``` ruby
-gem 'cequel'
+gem 'cassandra_kit'
 ```
 
+# TODO - verify if this is still true
 If you use Rails 5, add this:
 ``` ruby
 gem 'activemodel-serializers-xml'
@@ -32,20 +26,20 @@ gem 'activemodel-serializers-xml'
 
 ### Rails integration ###
 
-Cequel does not require Rails, but if you are using Rails, you
-will need version 3.2+. Cequel::Record will read from the configuration file
-`config/cequel.yml` if it is present. You can generate a default configuration
+CassandraKit does not require Rails, but if you are using Rails, you
+will need version 3.2+. CassandraKit::Record will read from the configuration file
+`config/cassandra_kit.yml` if it is present. You can generate a default configuration
 file with:
 
 ```bash
-rails g cequel:configuration
+rails g cassandra_kit:configuration
 ```
 
 Once you've got things configured (or decided to accept the defaults), run this
 to create your keyspace (database):
 
 ```bash
-rake cequel:keyspace:create
+rake cassandra_kit:keyspace:create
 ```
 
 ## Setting up Models ##
@@ -55,7 +49,7 @@ a simple `Blog` model:
 
 ```ruby
 class Blog
-  include Cequel::Record
+  include CassandraKit::Record
 
   key :subdomain, :text
   column :name, :text
@@ -71,13 +65,13 @@ use a UUID.
 ### Compound keys and parent-child relationships ###
 
 While Cassandra is not a relational database, compound keys do naturally map
-to parent-child relationships. Cequel supports this explicitly with the
+to parent-child relationships. CassandraKit supports this explicitly with the
 `has_many` and `belongs_to` relations. Let's create a model for posts that acts
 as the child of the blog model:
 
 ```ruby
 class Post
-  include Cequel::Record
+  include CassandraKit::Record
   belongs_to :blog
   key :id, :timeuuid, auto: true
   column :title, :text
@@ -85,7 +79,7 @@ class Post
 end
 ```
 
-The `auto` option for the `key` declaration means Cequel will initialize new
+The `auto` option for the `key` declaration means CassandraKit will initialize new
 records with a UUID already generated. This option is only valid for `:uuid` and
 `:timeuuid` key columns.
 
@@ -104,7 +98,7 @@ Practically speaking, this means that posts are accessed using both the
 
 ```ruby
 class Blog
-  include Cequel::Record
+  include CassandraKit::Record
 
   key :subdomain, :text
   column :name, :text
@@ -129,7 +123,7 @@ Parent child relationship in a namespaced model can be defined using the `class_
 ```ruby
 module Blogger
   class Blog
-    include Cequel::Record
+    include CassandraKit::Record
 
     key :subdomain, :text
     column :name, :text
@@ -141,7 +135,7 @@ end
 
 module Blogger
   class Post
-    include Cequel::Record
+    include CassandraKit::Record
 
     belongs_to :blog, class_name: 'Blogger::Blog'
     key :id, :timeuuid, auto: true
@@ -157,7 +151,7 @@ If you wish to declare a compound partition key in a model, you can do something
 
 ```ruby
 class Post
-  include Cequel::Record
+  include CassandraKit::Record
 
   key :country, :text, partition: true
   key :blog, :text, partition: true
@@ -179,7 +173,7 @@ To add timestamp columns, simply use the `timestamps` class macro:
 
 ```ruby
 class Blog
-  include Cequel::Record
+  include CassandraKit::Record
 
   key :subdomain, :text
   column :name, :text
@@ -201,7 +195,7 @@ helper methods on the model:
 
 ```ruby
 class Blog
-  include Cequel::Record
+  include CassandraKit::Record
 
   key :subdomain, :text
   column :name, :text
@@ -218,12 +212,12 @@ Blog.status # { open: 1, closed: 2 }
 
 ### Schema synchronization ###
 
-Cequel will automatically synchronize the schema stored in Cassandra to match
+CassandraKit will automatically synchronize the schema stored in Cassandra to match
 the schema you have defined in your models. If you're using Rails, you can
 synchronize your schemas for everything in `app/models` by invoking:
 
 ```bash
-rake cequel:migrate
+rake cassandra_kit:migrate
 ```
 
 ### Record sets ###
@@ -278,7 +272,7 @@ type](https://docs.datastax.com/en/cql/3.3/cql/cql_reference/uuid_type_r.html),
 which allows you to return a rows whose UUID keys correspond to a range of
 timestamps.
 
-Cequel automatically constructs timeuuid range queries if you pass a `Time`
+CassandraKit automatically constructs timeuuid range queries if you pass a `Time`
 value for a range over a `timeuuid` column. So, if you want to get the posts
 from the last day, you can run:
 
@@ -288,17 +282,17 @@ Blog['myblog'].posts.from(1.day.ago)
 
 ### Updating records ###
 
-When you update an existing record, Cequel will only write statements to the
+When you update an existing record, CassandraKit will only write statements to the
 database that correspond to explicit modifications you've made to the record in
 memory. So, in this situation:
 
 ```ruby
 @post = Blog.find(current_subdomain).posts.find(params[:id])
-@post.update_attributes!(title: "Announcing Cequel 1.0")
+@post.update_attributes!(title: "Announcing CassandraKit 1.0")
 ```
 
-Cequel will only update the title column. Note that this is not full dirty
-tracking; simply setting the title on the record will signal to Cequel that you
+CassandraKit will only update the title column. Note that this is not full dirty
+tracking; simply setting the title on the record will signal to CassandraKit that you
 want to write that attribute to the database, regardless of its previous value.
 
 ### Unloaded models ###
@@ -306,7 +300,7 @@ want to write that attribute to the database, regardless of its previous value.
 In the above example, we call the familiar `find` method to load a blog and then
 one of its posts, but we didn't actually do anything with the data in the Blog
 model; it was simply a convenient object-oriented way to get a handle to the
-blog's posts. Cequel supports unloaded models via the `[]` operator; this will
+blog's posts. CassandraKit supports unloaded models via the `[]` operator; this will
 return an **unloaded** blog instance, which knows the value of its primary key,
 but does not read the row from the database. So, we can refactor the example to
 be a bit more efficient:
@@ -334,7 +328,7 @@ end
 ```
 
 The above will not generate a CQL query, but when you access a property on any
-of the unloaded `Blog` instances, Cequel will load data for all of them with
+of the unloaded `Blog` instances, CassandraKit will load data for all of them with
 a single query. Note that CQL does not allow selecting collection columns when
 loading multiple records by primary key; only scalar columns will be loaded.
 
@@ -348,7 +342,8 @@ a large number of records.
 
 Cassandra supports three types of collection columns: lists, sets, and maps.
 Collection columns can be manipulated using atomic collection mutation; e.g.,
-you can add an element to a set without knowing the existing elements. Cequel
+you can add an element to a set without knowing the existing elements.
+CassandraKit
 supports this by exposing collection objects that keep track of their
 modifications, and which then persist those modifications to Cassandra on save.
 
@@ -357,7 +352,7 @@ Let's add a category set to our post model:
 
 ```ruby
 class Post
-  include Cequel::Record
+  include CassandraKit::Record
 
   belongs_to :blog
   key :id, :uuid
@@ -375,7 +370,7 @@ If we were to then update a post like so:
 @post.save!
 ```
 
-Cequel would send the CQL equivalent of "Add the category 'Kittens' to the post
+CassandraKit would send the CQL equivalent of "Add the category 'Kittens' to the post
 at the given `(blog_subdomain, id)`", without ever reading the saved value of
 the `categories` set.
 
@@ -389,12 +384,12 @@ Cassandra supports secondary indexes, although with notable restrictions:
 * Though you can have more than one secondary index on a table, you can only use
   one in any given query.
 
-Cequel supports the `:index` option to add secondary indexes to column
+CassandraKit supports the `:index` option to add secondary indexes to column
 definitions:
 
 ```ruby
 class Post
-  include Cequel::Record
+  include CassandraKit::Record
 
   belongs_to :blog
   key :id, :uuid
@@ -425,7 +420,7 @@ Post.where(author_id: id)
 Cassandra supports [tunable
 consistency](http://www.datastax.com/documentation/cassandra/2.0/cassandra/dml/dml_config_consistency_c.html),
 allowing you to choose the right balance between query speed and consistent
-reads and writes. Cequel supports consistency tuning for reads and writes:
+reads and writes. CassandraKit supports consistency tuning for reads and writes:
 
 ```ruby
 Post.new(id: 1, title: 'First post!').save!(consistency: :all)
@@ -439,7 +434,7 @@ Both read and write consistency default to `QUORUM`.
 
 Cassandra supports [frame compression](http://datastax.github.io/ruby-driver/features/#compression),
 which can give you a performance boost if your requests or responses are big. To enable it you can
-specify `client_compression` to use in cequel.yaml.
+specify `client_compression` to use in cassandra_kit.yaml.
 
 ```yaml
 development:
@@ -451,7 +446,7 @@ development:
 
 ### ActiveModel Support ###
 
-Cequel supports ActiveModel functionality, such as callbacks, validations,
+CassandraKit supports ActiveModel functionality, such as callbacks, validations,
 dirty attribute tracking, naming, and serialization. If you're using Rails 3,
 mass-assignment protection works as usual, and in Rails 4, strong parameters are
 treated correctly. So we can add some extra ActiveModel goodness to our post
@@ -459,7 +454,7 @@ model:
 
 ```ruby
 class Post
-  include Cequel::Record
+  include CassandraKit::Record
 
   belongs_to :blog
   key :id, :uuid
@@ -478,101 +473,10 @@ you are following a write-without-reading pattern, you will need to be careful.
 
 Dirty attribute tracking is only enabled on loaded models.
 
-## Upgrading from Cequel 0.x ##
-
-Cequel 0.x targeted CQL2, which has a substantially different data
-representation from CQL3. Accordingly, upgrading from Cequel 0.x to Cequel 1.0
-requires some changes to your data models.
-
-### Upgrading a Cequel::Model ###
-
-Upgrading from a `Cequel::Model` class is fairly straightforward; simply add the
-`compact_storage` directive to your class definition:
-
-```ruby
-# Model definition in Cequel 0.x
-class Post
-  include Cequel::Model
-
-  key :id, :uuid
-  column :title, :text
-  column :body, :text
-end
-
-# Model definition in Cequel 1.0
-class Post
-  include Cequel::Record
-
-  key :id, :uuid
-  column :title, :text
-  column :body, :text
-
-  compact_storage
-end
-```
-
-Note that the semantics of `belongs_to` and `has_many` are completely different
-between Cequel 0.x and Cequel 1.0; if you have data columns that reference keys
-in other tables, you will need to hand-roll those associations for now.
-
-### Upgrading a Cequel::Model::Dictionary ###
-
-CQL3 does not have a direct "wide row" representation like CQL2, so the
-`Dictionary` class does not have a direct analog in Cequel 1.0. Instead, each
-row key-map key-value tuple in a `Dictionary` corresponds to a single row in
-CQL3. Upgrading a `Dictionary` to Cequel 1.0 involves defining two primary keys
-and a single data column, again using the `compact_storage` directive:
-
-``` ruby
-# Dictionary definition in Cequel 0.x
-class BlogPosts < Cequel::Model::Dictionary
-  key :blog_id, :uuid
-  maps :uuid => :text
-
-  private
-
-  def serialize_value(column, value)
-    value.to_json
-  end
-
-  def deserialize_value(column, value)
-    JSON.parse(value)
-  end
-end
-
-# Equivalent model in Cequel 1.0
-class BlogPost
-  include Cequel::Record
-
-  key :blog_id, :uuid
-  key :id, :uuid
-  column :data, :text
-
-  compact_storage
-
-  def data
-    JSON.parse(read_attribute(:data))
-  end
-
-  def data=(new_data)
-    write_attribute(:data, new_data.to_json)
-  end
-end
-```
-
-`Cequel::Model::Dictionary` did not infer a pluralized table name, as
-`Cequel::Model` did and `Cequel::Record` does. If your legacy `Dictionary`
-table has a singlar table name, add a `self.table_name = :blog_post` in the
-model definition.
-
-Note that you will want to run `::synchronize_schema` on your models when
-upgrading; this will not change the underlying data structure, but will add some
-CQL3-specific metadata to the table definition which will allow you to query it.
-
 ### CQL Gotchas ###
 
 CQL is designed to be immediately familiar to those of us who are used to
-working with SQL, which is all of us. Cequel advances this spirit by providing
+working with SQL, which is all of us. CassandraKit advances this spirit by providing
 an ActiveRecord-like mapping for CQL. However, Cassandra is very much not a
 relational database, so some behaviors can come as a surprise. Here's an
 overview.
@@ -606,7 +510,7 @@ the columns that are given.
 #### Counting ####
 
 Counting is not the same as in a RDB, as it can have a much longer runtime and
-can put unexpected load on your cluster. As a result Cequel does not support
+can put unexpected load on your cluster. As a result CassandraKit does not support
 this feature. It is still possible to execute raw cql to get the counts, should
 you require this functionality.
 `MyModel.connection.execute('select count(*) from table_name;').first['count']`
@@ -614,6 +518,8 @@ you require this functionality.
 ## Compatibility ##
 
 ### Rails ###
+* 6.1
+* 6.0
 * 5.2
 * 5.1
 * 5.0
@@ -631,53 +537,21 @@ you require this functionality.
 * 2.2.x
 * 3.0.x
 
-## Breaking API changes
+## Running locally
 
-### 3.0
+This gem requires Ruby 2.5.1
 
- * Dropped support for changing the type of cluster keys because the ability has
-   been removed from Cassandra. Calls to `#change_column` must be removed.
- * Dropped support for previously deprecated signature of the `#column` method
-   of schema DSL. Uses like `column :my_column, :text, true` must be rewritten
-   as `#column :my_column, :text, indexed: true`
+```
+RUBY_CFLAGS=-DUSE_FFI_CLOSURE_ALLOC rbenv install 2.5.1
+gem install bundler -v 2.3.26 
+bundle install
 
-### 2.0
-
- * dropped support for jruby (Due to difficult to work around bugs in jruby. PRs welcome to restore jruby compatibility.)
-
-## Support & Bugs ##
-
-If you find a bug, feel free to
-[open an issue](https://github.com/cequel/cequel/issues/new) on GitHub.
-Pull requests are most welcome.
-
-For questions or feedback, hit up our mailing list at
-[cequel@groups.google.com](http://groups.google.com/group/cequel)
-or find outoftime in the #cassandra IRC channel on Freenode.
-
-## Contributing ##
-
-See
-[CONTRIBUTING.md](https://github.com/cequel/cequel/blob/master/CONTRIBUTING.md)
-
-## Credits ##
-
-Cequel was written by an [awesome lot](https://github.com/cequel/cequel/graphs/contributors). Thanks to you all.
-
-
-Special thanks to [Brewster](http://www.brewster.com), which supported the 0.x
-releases of Cequel.
-
-## Shameless Self-Promotion ##
-
-If you're new to Cassandra, check out [Learning Apache
-Cassandra](http://www.amazon.com/gp/product/1783989203/ref=s9_simh_co_p14_d4_i1?pf_rd_m=ATVPDKIKX0DER&pf_rd_s=left-1&pf_rd_r=1TX356WHGF06W32ZHD8S&pf_rd_t=3201&pf_rd_p=1953562742&pf_rd_i=typ01),
-a hands-on guide to Cassandra application development by example, written by
-the creator of Cequel.
+bundle exec rake test
+```
 
 ## License ##
 
-Cequel is distributed under the MIT license. See the attached LICENSE for all
+CassandraKit is distributed under the MIT license. See the attached LICENSE for all
 the sordid details.
 
 [CQL3]: http://docs.datastax.com/en/cql/3.3/cql/cqlIntro.html
