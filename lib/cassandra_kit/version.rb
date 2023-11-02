@@ -1,5 +1,5 @@
 # -*- encoding : utf-8 -*-
 module CassandraKit
   # The current version of the library
-  VERSION = '3.2.1'
+  VERSION = '1.0.0'
 end
