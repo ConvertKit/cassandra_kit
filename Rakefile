@@ -28,13 +28,13 @@ end
 
 desc 'Create git release tag'
 task :tag do
-  system "git tag -a -m 'Version #{Cequel::VERSION}' #{Cequel::VERSION}"
-  system "git push git@github.com:cassandra_kit/cassandra_kit.git #{Cequel::VERSION}:#{Cequel::VERSION}"
+  system "git tag -a -m 'Version #{CassandraKit::VERSION}' #{CassandraKit::VERSION}"
+  system "git push git@github.com:cassandra_kit/cassandra_kit.git #{CassandraKit::VERSION}:#{CassandraKit::VERSION}"
 end
 
 desc 'Update stable branch on GitHub'
 task :update_stable do
-  system 'git push -f origin HEAD:stable' if Cequel::VERSION =~ /^(\d+\.)+\d+$/ # Don't push for prerelease
+  system 'git push -f origin HEAD:stable' if CassandraKit::VERSION =~ /^(\d+\.)+\d+$/ # Don't push for prerelease
 end
 
 desc 'Push gem to repository'
@@ -102,7 +102,7 @@ task :changelog do
   last_tag = `git tag`.each_line.map(&:strip).last
   existing_changelog = File.read('./CHANGELOG.md')
   File.open('./CHANGELOG.md', 'w') do |f|
-    f.puts "## #{Cequel::VERSION}"
+    f.puts "## #{CassandraKit::VERSION}"
     f.puts ''
     f.puts `git log --no-merges --pretty=format:'* %s' #{last_tag}..`
     f.puts ''
@@ -113,5 +113,5 @@ end
 task :verify_changelog do
   require './lib/cassandra_kit/version'
 
-  abort 'Changelog is not up-to-date.' if File.read('./CHANGELOG.md').each_line.first.strip != "## #{Cequel::VERSION}"
+  abort 'Changelog is not up-to-date.' if File.read('./CHANGELOG.md').each_line.first.strip != "## #{CassandraKit::VERSION}"
 end
